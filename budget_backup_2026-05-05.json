@@ -1,0 +1,4283 @@
+{
+  "version": 3,
+  "exportedAt": "2026-05-05T18:41:25.748Z",
+  "cfg": {
+    "chrisPay": 6321.6,
+    "sarahPay": 3874.46,
+    "month": 5,
+    "year": 2026,
+    "criticalBills": 3042.77,
+    "emergencyFund": 12323.5
+  },
+  "buckets": [
+    {
+      "id": "b1",
+      "name": "Christmas (Sarah)",
+      "type": "accrual",
+      "monthly": 100
+    },
+    {
+      "id": "b2",
+      "name": "Christmas (Chris)",
+      "type": "accrual",
+      "monthly": 100
+    },
+    {
+      "id": "b3",
+      "name": "Birthday / Gifting",
+      "type": "accrual",
+      "monthly": 200
+    },
+    {
+      "id": "b4",
+      "name": "Medical Bills",
+      "type": "accrual",
+      "monthly": 50
+    },
+    {
+      "id": "b5",
+      "name": "Charity",
+      "type": "accrual",
+      "monthly": 150
+    },
+    {
+      "id": "b6",
+      "name": "Broadway",
+      "type": "accrual",
+      "monthly": 167
+    },
+    {
+      "id": "b7",
+      "name": "Major Vacation",
+      "type": "accrual",
+      "monthly": 800
+    },
+    {
+      "id": "b8",
+      "name": "Minor Vacation",
+      "type": "accrual",
+      "monthly": 400
+    },
+    {
+      "id": "b9",
+      "name": "Lawn Care",
+      "type": "accrual",
+      "monthly": 33
+    },
+    {
+      "id": "b10",
+      "name": "Car Maintenance",
+      "type": "accrual",
+      "monthly": 175
+    },
+    {
+      "id": "b11",
+      "name": "Car Detail",
+      "type": "accrual",
+      "monthly": 42
+    },
+    {
+      "id": "b12",
+      "name": "Sirius XM",
+      "type": "accrual",
+      "monthly": 20
+    },
+    {
+      "id": "b13",
+      "name": "Amazon Prime",
+      "type": "accrual",
+      "monthly": 12
+    },
+    {
+      "id": "b14",
+      "name": "T-Mobile",
+      "type": "bills",
+      "monthly": 151.58
+    },
+    {
+      "id": "b15",
+      "name": "Water Bill",
+      "type": "bills",
+      "monthly": 61
+    },
+    {
+      "id": "b16",
+      "name": "Car Insurance",
+      "type": "bills",
+      "monthly": 188
+    },
+    {
+      "id": "b17",
+      "name": "Mortgage",
+      "type": "bills",
+      "monthly": 780
+    },
+    {
+      "id": "b18",
+      "name": "ATT",
+      "type": "bills",
+      "monthly": 65.19
+    },
+    {
+      "id": "b19",
+      "name": "Garbage",
+      "type": "bills",
+      "monthly": 12
+    },
+    {
+      "id": "b20",
+      "name": "Consumers Energy",
+      "type": "bills",
+      "monthly": 133
+    },
+    {
+      "id": "b21",
+      "name": "DTE",
+      "type": "bills",
+      "monthly": 70
+    },
+    {
+      "id": "b22",
+      "name": "Amazon Music",
+      "type": "bills",
+      "monthly": 10.99
+    },
+    {
+      "id": "b23",
+      "name": "Student Loans",
+      "type": "bills",
+      "monthly": 1000
+    },
+    {
+      "id": "b24",
+      "name": "Blink",
+      "type": "bills",
+      "monthly": 9
+    },
+    {
+      "id": "b25",
+      "name": "Jeep Loan",
+      "type": "bills",
+      "monthly": 492
+    },
+    {
+      "id": "b26",
+      "name": "Mr. Carwash",
+      "type": "bills",
+      "monthly": 57
+    },
+    {
+      "id": "b27",
+      "name": "Gas (Chris)",
+      "type": "spending",
+      "monthly": 300
+    },
+    {
+      "id": "b28",
+      "name": "Gas (Sarah)",
+      "type": "spending",
+      "monthly": 140
+    },
+    {
+      "id": "b29",
+      "name": "Groceries",
+      "type": "spending",
+      "monthly": 650
+    },
+    {
+      "id": "b30",
+      "name": "Fun / Entertainment",
+      "type": "spending",
+      "monthly": 400
+    },
+    {
+      "id": "b31",
+      "name": "Out to Eat",
+      "type": "spending",
+      "monthly": 400
+    },
+    {
+      "id": "b32",
+      "name": "Catch All",
+      "type": "spending",
+      "monthly": 150
+    },
+    {
+      "id": "b33",
+      "name": "House",
+      "type": "spending",
+      "monthly": 290
+    },
+    {
+      "id": "b34",
+      "name": "Allowance (Chris)",
+      "type": "spending",
+      "monthly": 282
+    },
+    {
+      "id": "b35",
+      "name": "Allowance (Sarah)",
+      "type": "spending",
+      "monthly": 282
+    },
+    {
+      "id": "b36",
+      "name": "Hair / Nails",
+      "type": "spending",
+      "monthly": 212
+    },
+    {
+      "id": "b37",
+      "name": "Golf",
+      "type": "spending",
+      "monthly": 84
+    },
+    {
+      "id": "b38",
+      "name": "Massage",
+      "type": "spending",
+      "monthly": 100
+    },
+    {
+      "id": "b39",
+      "name": "Clothes",
+      "type": "spending",
+      "monthly": 175
+    },
+    {
+      "id": "b40",
+      "name": "Wine",
+      "type": "spending",
+      "monthly": 100
+    },
+    {
+      "id": "b41",
+      "name": "IRA Increase",
+      "type": "savings",
+      "monthly": 1431
+    },
+    {
+      "id": "b42",
+      "name": "Savings",
+      "type": "savings",
+      "monthly": 0
+    },
+    {
+      "id": "b43",
+      "name": "Other",
+      "type": "spending",
+      "monthly": 0
+    }
+  ],
+  "transactions": [
+    {
+      "id": "xb477x2j",
+      "date": "2025-01-01",
+      "who": "imported",
+      "amount": 287.36,
+      "bucket": "b9",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xu8azt05",
+      "date": "2025-01-07",
+      "who": "imported",
+      "amount": 51.66,
+      "bucket": "b7",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xmprlvc6",
+      "date": "2025-01-09",
+      "who": "imported",
+      "amount": 242.73,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xrbv6jvc",
+      "date": "2025-01-23",
+      "who": "imported",
+      "amount": 38.26,
+      "bucket": "b1",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xs120qms",
+      "date": "2025-01-23",
+      "who": "imported",
+      "amount": 25.51,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xi0o4h5n",
+      "date": "2025-01-23",
+      "who": "imported",
+      "amount": 12.71,
+      "bucket": "b10",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xvwwg5cm",
+      "date": "2025-01-28",
+      "who": "imported",
+      "amount": 11.2,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xusltrwb",
+      "date": "2025-01-29",
+      "who": "imported",
+      "amount": 40,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xjeftuwz",
+      "date": "2025-01-29",
+      "who": "imported",
+      "amount": 65.93,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xudw6zwi",
+      "date": "2025-01-31",
+      "who": "imported",
+      "amount": 40.23,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x125txqz",
+      "date": "2025-02-03",
+      "who": "imported",
+      "amount": 100,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xpiun7vh",
+      "date": "2025-02-05",
+      "who": "imported",
+      "amount": 50,
+      "bucket": "b5",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxndxyxu",
+      "date": "2025-02-06",
+      "who": "imported",
+      "amount": 1052.44,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xsfuiaqy",
+      "date": "2025-02-08",
+      "who": "imported",
+      "amount": 212.77,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x3mxt8vy",
+      "date": "2025-02-08",
+      "who": "imported",
+      "amount": 639.61,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0azqoja",
+      "date": "2025-02-13",
+      "who": "imported",
+      "amount": 51,
+      "bucket": "b5",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xo39oynw",
+      "date": "2025-02-14",
+      "who": "imported",
+      "amount": 110,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xt2udnu0",
+      "date": "2025-02-17",
+      "who": "imported",
+      "amount": 200,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xm4q6a4p",
+      "date": "2025-02-19",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b4",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgjw75jd",
+      "date": "2025-02-19",
+      "who": "imported",
+      "amount": 360,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x193iuwu",
+      "date": "2025-02-20",
+      "who": "imported",
+      "amount": 40,
+      "bucket": "b4",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xd1x2qyg",
+      "date": "2025-02-20",
+      "who": "imported",
+      "amount": 44,
+      "bucket": "b6",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x274vtlq",
+      "date": "2025-02-21",
+      "who": "imported",
+      "amount": 15,
+      "bucket": "b4",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0jf1jmr",
+      "date": "2025-02-22",
+      "who": "imported",
+      "amount": 172.93,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfp2r31q",
+      "date": "2025-02-23",
+      "who": "imported",
+      "amount": 161.14,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xvhcecn2",
+      "date": "2025-02-25",
+      "who": "imported",
+      "amount": 250,
+      "bucket": "b6",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtvbocqy",
+      "date": "2025-02-25",
+      "who": "imported",
+      "amount": 40,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x1az20bg",
+      "date": "2025-02-27",
+      "who": "imported",
+      "amount": 21.04,
+      "bucket": "b4",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x346w63n",
+      "date": "2025-03-01",
+      "who": "imported",
+      "amount": 22.66,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xalq182w",
+      "date": "2025-03-04",
+      "who": "imported",
+      "amount": 51.54,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xs3ctimk",
+      "date": "2025-03-05",
+      "who": "imported",
+      "amount": 150.55,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfnrthom",
+      "date": "2025-03-06",
+      "who": "imported",
+      "amount": 55.44,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xi1szp0l",
+      "date": "2025-03-06",
+      "who": "imported",
+      "amount": 437.28,
+      "bucket": "b10",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdze7yo1",
+      "date": "2025-03-08",
+      "who": "imported",
+      "amount": 175.2,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xncxbgkg",
+      "date": "2025-03-09",
+      "who": "imported",
+      "amount": 125,
+      "bucket": "b3",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x010fu1r",
+      "date": "2025-03-09",
+      "who": "imported",
+      "amount": 671.17,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwufd9v9",
+      "date": "2025-03-09",
+      "who": "imported",
+      "amount": 168,
+      "bucket": "b8",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xuq2et0z",
+      "date": "2025-03-10",
+      "who": "imported",
+      "amount": 216.07,
+      "bucket": "b8",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xjuv49l4",
+      "date": "2025-03-12",
+      "who": "imported",
+      "amount": 7.25,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xa8t9yxa",
+      "date": "2025-03-13",
+      "who": "imported",
+      "amount": 46.7,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xg1pytg9",
+      "date": "2025-03-16",
+      "who": "imported",
+      "amount": 372,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x3ti1f6u",
+      "date": "2025-03-17",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b4",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x05gknv1",
+      "date": "2025-03-17",
+      "who": "imported",
+      "amount": 254.3,
+      "bucket": "b10",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xn8w3rbf",
+      "date": "2025-03-18",
+      "who": "imported",
+      "amount": 26.49,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdo1u6xm",
+      "date": "2025-03-19",
+      "who": "imported",
+      "amount": 34.23,
+      "bucket": "b4",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xmiuy0sv",
+      "date": "2025-03-20",
+      "who": "imported",
+      "amount": 269.52,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xqexbp4q",
+      "date": "2025-03-24",
+      "who": "imported",
+      "amount": 31.72,
+      "bucket": "b4",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xolxhs4q",
+      "date": "2025-03-24",
+      "who": "imported",
+      "amount": 12,
+      "bucket": "b10",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xk9p678i",
+      "date": "2025-03-28",
+      "who": "imported",
+      "amount": 851.05,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xsbs88or",
+      "date": "2025-03-28",
+      "who": "imported",
+      "amount": 227.77,
+      "bucket": "b10",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xttfd2n6",
+      "date": "2025-03-29",
+      "who": "imported",
+      "amount": 50,
+      "bucket": "b7",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x0tskcib",
+      "date": "2025-03-31",
+      "who": "imported",
+      "amount": 230,
+      "bucket": "b10",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xj8nj08h",
+      "date": "2025-04-01",
+      "who": "imported",
+      "amount": 16,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xco6r2cr",
+      "date": "2025-04-02",
+      "who": "imported",
+      "amount": 43.56,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtekj54v",
+      "date": "2025-04-02",
+      "who": "imported",
+      "amount": 52,
+      "bucket": "b9",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xjuqhv1i",
+      "date": "2025-04-03",
+      "who": "imported",
+      "amount": 79.61,
+      "bucket": "b10",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xjg3yj4t",
+      "date": "2025-04-04",
+      "who": "imported",
+      "amount": 15.89,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xrw8dh0b",
+      "date": "2025-04-04",
+      "who": "imported",
+      "amount": 81.06,
+      "bucket": "b10",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xrg5b0b7",
+      "date": "2025-04-04",
+      "who": "imported",
+      "amount": 198.12,
+      "bucket": "b11",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xogczony",
+      "date": "2025-04-07",
+      "who": "imported",
+      "amount": 65.7,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x6f9h3et",
+      "date": "2025-04-09",
+      "who": "imported",
+      "amount": 6.36,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x2u3t9q8",
+      "date": "2025-04-10",
+      "who": "imported",
+      "amount": 85.82,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xaa49cb1",
+      "date": "2025-04-11",
+      "who": "imported",
+      "amount": 320,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x64pc5fk",
+      "date": "2025-04-12",
+      "who": "imported",
+      "amount": 444.77,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x8npjh9s",
+      "date": "2025-04-13",
+      "who": "imported",
+      "amount": 1095.54,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xqi536xf",
+      "date": "2025-04-14",
+      "who": "imported",
+      "amount": 375.01,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x6hc88o4",
+      "date": "2025-04-15",
+      "who": "imported",
+      "amount": 294,
+      "bucket": "b6",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x8jotivt",
+      "date": "2025-04-15",
+      "who": "imported",
+      "amount": 502.49,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xsl78d4a",
+      "date": "2025-04-16",
+      "who": "imported",
+      "amount": 439.14,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xogxpytw",
+      "date": "2025-04-17",
+      "who": "imported",
+      "amount": 425.67,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xx0nahx4",
+      "date": "2025-04-17",
+      "who": "imported",
+      "amount": 658.33,
+      "bucket": "b10",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xifi4mo4",
+      "date": "2025-04-18",
+      "who": "imported",
+      "amount": 21.94,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xusekqmn",
+      "date": "2025-04-19",
+      "who": "imported",
+      "amount": 390.06,
+      "bucket": "b3",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xz5e2kkv",
+      "date": "2025-04-20",
+      "who": "imported",
+      "amount": 75,
+      "bucket": "b3",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x5lqrabw",
+      "date": "2025-04-22",
+      "who": "imported",
+      "amount": 5.6,
+      "bucket": "b7",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xkx1vn1o",
+      "date": "2025-04-23",
+      "who": "imported",
+      "amount": 626.72,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xu3g3fvc",
+      "date": "2025-04-24",
+      "who": "imported",
+      "amount": 488,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x1e7k5d8",
+      "date": "2025-04-25",
+      "who": "imported",
+      "amount": 420.4,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdyhk32y",
+      "date": "2025-04-26",
+      "who": "imported",
+      "amount": 477.7,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xrbr529r",
+      "date": "2025-04-27",
+      "who": "imported",
+      "amount": 230.5,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xrdieksm",
+      "date": "2025-04-28",
+      "who": "imported",
+      "amount": 47.42,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x60um5tv",
+      "date": "2025-04-29",
+      "who": "imported",
+      "amount": 353.11,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xewk2x3b",
+      "date": "2025-04-30",
+      "who": "imported",
+      "amount": 537.45,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlli060f",
+      "date": "2025-05-01",
+      "who": "imported",
+      "amount": 539.1,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xmha33yq",
+      "date": "2025-05-02",
+      "who": "imported",
+      "amount": 606.64,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xe86onh2",
+      "date": "2025-05-03",
+      "who": "imported",
+      "amount": 519.33,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxavv2aa",
+      "date": "2025-05-04",
+      "who": "imported",
+      "amount": 285.73,
+      "bucket": "b7",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xu6r3652",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 30,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xoelhf6v",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 57.72,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xs0p78el",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 434.17,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xmcobppu",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 295.69,
+      "bucket": "b35",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x3zgtuuh",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 18.11,
+      "bucket": "b37",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x3r1mq4e",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 151.58,
+      "bucket": "b14",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xuam4g9c",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 1536.21,
+      "bucket": "b16",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x70xhzzu",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 9,
+      "bucket": "b19",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x93mbt85",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 17,
+      "bucket": "b24",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xee8wyvm",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 1786.94,
+      "bucket": "b42",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xse2b3oh",
+      "date": "2026-01-01",
+      "who": "imported",
+      "amount": 5119.23,
+      "bucket": "b41",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xo3n6ps3",
+      "date": "2026-01-02",
+      "who": "imported",
+      "amount": 36.97,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xckluwnz",
+      "date": "2026-01-02",
+      "who": "imported",
+      "amount": 38.41,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xo69v3sy",
+      "date": "2026-01-02",
+      "who": "imported",
+      "amount": 13.94,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xj5gz9ct",
+      "date": "2026-01-02",
+      "who": "imported",
+      "amount": 64.34,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xk9nh77t",
+      "date": "2026-01-02",
+      "who": "imported",
+      "amount": 779.96,
+      "bucket": "b17",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xd3hhrnc",
+      "date": "2026-01-02",
+      "who": "imported",
+      "amount": 235.4,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xhxlf8xu",
+      "date": "2026-01-02",
+      "who": "imported",
+      "amount": 32.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdy6rerc",
+      "date": "2026-01-04",
+      "who": "imported",
+      "amount": 45.19,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xqorqnq9",
+      "date": "2026-01-04",
+      "who": "imported",
+      "amount": 25,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xd8swr4c",
+      "date": "2026-01-05",
+      "who": "imported",
+      "amount": 2.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xc7s8jt7",
+      "date": "2026-01-05",
+      "who": "imported",
+      "amount": 57.13,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdgezd5h",
+      "date": "2026-01-06",
+      "who": "imported",
+      "amount": 33,
+      "bucket": "b35",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x3yen56e",
+      "date": "2026-01-06",
+      "who": "imported",
+      "amount": 256.34,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xcv45vi1",
+      "date": "2026-01-07",
+      "who": "imported",
+      "amount": 36.17,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5bygt69",
+      "date": "2026-01-07",
+      "who": "imported",
+      "amount": 26,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xcx7pj4c",
+      "date": "2026-01-08",
+      "who": "imported",
+      "amount": 13.02,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtc2nez2",
+      "date": "2026-01-09",
+      "who": "imported",
+      "amount": 36.32,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xn1yttoa",
+      "date": "2026-01-09",
+      "who": "imported",
+      "amount": 50,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xy4o57hz",
+      "date": "2026-01-10",
+      "who": "imported",
+      "amount": 130.89,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwvytb8u",
+      "date": "2026-01-10",
+      "who": "imported",
+      "amount": 71,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xhgrddb7",
+      "date": "2026-01-10",
+      "who": "imported",
+      "amount": 93.73,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x41yh8hz",
+      "date": "2026-01-10",
+      "who": "imported",
+      "amount": 60,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xjdlnbms",
+      "date": "2026-01-11",
+      "who": "imported",
+      "amount": 10.6,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x9ie2cn7",
+      "date": "2026-01-12",
+      "who": "imported",
+      "amount": 58.26,
+      "bucket": "b33",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x58knr3f",
+      "date": "2026-01-12",
+      "who": "imported",
+      "amount": 50,
+      "bucket": "b34",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x285g0ih",
+      "date": "2026-01-12",
+      "who": "imported",
+      "amount": 70,
+      "bucket": "b21",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xr4o2s5w",
+      "date": "2026-01-13",
+      "who": "imported",
+      "amount": 40.55,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xc39ztwc",
+      "date": "2026-01-13",
+      "who": "imported",
+      "amount": 30,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xjsdviae",
+      "date": "2026-01-13",
+      "who": "imported",
+      "amount": 33,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgswnk4a",
+      "date": "2026-01-13",
+      "who": "imported",
+      "amount": 223.17,
+      "bucket": "b40",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x632qhod",
+      "date": "2026-01-14",
+      "who": "imported",
+      "amount": 31.92,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xqh9gm7u",
+      "date": "2026-01-14",
+      "who": "imported",
+      "amount": 6,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0rmhalu",
+      "date": "2026-01-14",
+      "who": "imported",
+      "amount": 114,
+      "bucket": "b38",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xryglgzw",
+      "date": "2026-01-14",
+      "who": "imported",
+      "amount": 60.95,
+      "bucket": "b15",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0jeotha",
+      "date": "2026-01-14",
+      "who": "imported",
+      "amount": 980.25,
+      "bucket": "b16",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xs8hyydn",
+      "date": "2026-01-16",
+      "who": "imported",
+      "amount": 40.44,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwfi9ka5",
+      "date": "2026-01-16",
+      "who": "imported",
+      "amount": 92.86,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xphur5ak",
+      "date": "2026-01-16",
+      "who": "imported",
+      "amount": 11.29,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlqfcy4z",
+      "date": "2026-01-17",
+      "who": "imported",
+      "amount": 97.23,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0agr2i7",
+      "date": "2026-01-17",
+      "who": "imported",
+      "amount": 90.79,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xvb23cym",
+      "date": "2026-01-17",
+      "who": "imported",
+      "amount": 29.74,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xnxvbyvv",
+      "date": "2026-01-18",
+      "who": "imported",
+      "amount": 32.07,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwpdjfj6",
+      "date": "2026-01-18",
+      "who": "imported",
+      "amount": 81.62,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xh038ixq",
+      "date": "2026-01-19",
+      "who": "imported",
+      "amount": 21.12,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xx0t2zbd",
+      "date": "2026-01-19",
+      "who": "imported",
+      "amount": 55.72,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x9z2o7qs",
+      "date": "2026-01-21",
+      "who": "imported",
+      "amount": 168,
+      "bucket": "b20",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfl4s0h9",
+      "date": "2026-01-22",
+      "who": "imported",
+      "amount": 33.44,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xzehv7zl",
+      "date": "2026-01-22",
+      "who": "imported",
+      "amount": 8.14,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xzcmdc28",
+      "date": "2026-01-22",
+      "who": "imported",
+      "amount": 72.59,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xs6em8a5",
+      "date": "2026-01-22",
+      "who": "imported",
+      "amount": 9.99,
+      "bucket": "b12",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xbsw3kzo",
+      "date": "2026-01-23",
+      "who": "imported",
+      "amount": 45.19,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xp9g6gm5",
+      "date": "2026-01-23",
+      "who": "imported",
+      "amount": 127.93,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x2i4c9v6",
+      "date": "2026-01-23",
+      "who": "imported",
+      "amount": 0.15,
+      "bucket": "b33",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xnw0i94t",
+      "date": "2026-01-23",
+      "who": "imported",
+      "amount": 70.45,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xx26k9ex",
+      "date": "2026-01-23",
+      "who": "imported",
+      "amount": 10.99,
+      "bucket": "b22",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x14sgdoo",
+      "date": "2026-01-24",
+      "who": "imported",
+      "amount": 35,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x08me0ve",
+      "date": "2026-01-24",
+      "who": "imported",
+      "amount": 194.55,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlptthu5",
+      "date": "2026-01-24",
+      "who": "imported",
+      "amount": 84.8,
+      "bucket": "b33",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xh5tcgcw",
+      "date": "2026-01-24",
+      "who": "imported",
+      "amount": 32,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xghkiq2s",
+      "date": "2026-01-24",
+      "who": "imported",
+      "amount": 12.13,
+      "bucket": "b12",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xuie482l",
+      "date": "2026-01-25",
+      "who": "imported",
+      "amount": 34.7,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x54nqh0q",
+      "date": "2026-01-25",
+      "who": "imported",
+      "amount": 79.84,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xbcbzh5h",
+      "date": "2026-01-26",
+      "who": "imported",
+      "amount": 23.31,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xvp823en",
+      "date": "2026-01-26",
+      "who": "imported",
+      "amount": 4,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x7damb7b",
+      "date": "2026-01-27",
+      "who": "imported",
+      "amount": 34.75,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xcm4e0d3",
+      "date": "2026-01-27",
+      "who": "imported",
+      "amount": 16,
+      "bucket": "b33",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxw1l3w2",
+      "date": "2026-01-27",
+      "who": "imported",
+      "amount": 214.67,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xhm5nsms",
+      "date": "2026-01-27",
+      "who": "imported",
+      "amount": 140,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xuv3th10",
+      "date": "2026-01-27",
+      "who": "imported",
+      "amount": 34.74,
+      "bucket": "b40",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5am7zkm",
+      "date": "2026-01-27",
+      "who": "imported",
+      "amount": 70.2,
+      "bucket": "b18",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwimsveh",
+      "date": "2026-01-27",
+      "who": "imported",
+      "amount": 23.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5vfy5j9",
+      "date": "2026-01-28",
+      "who": "imported",
+      "amount": 6,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xvhqtd33",
+      "date": "2026-01-29",
+      "who": "imported",
+      "amount": 49.68,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfvz7fi2",
+      "date": "2026-01-29",
+      "who": "imported",
+      "amount": 40,
+      "bucket": "b35",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xnckghqj",
+      "date": "2026-01-30",
+      "who": "imported",
+      "amount": 32.98,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x8jq7uh6",
+      "date": "2026-01-30",
+      "who": "imported",
+      "amount": 46.2,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfrn1yr1",
+      "date": "2026-01-31",
+      "who": "imported",
+      "amount": 84.77,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xn05oh8u",
+      "date": "2026-01-31",
+      "who": "imported",
+      "amount": 77.06,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xb3gz53w",
+      "date": "2026-01-31",
+      "who": "imported",
+      "amount": 113.77,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xf7j0osg",
+      "date": "2026-01-31",
+      "who": "imported",
+      "amount": 58.26,
+      "bucket": "b33",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xggalgd0",
+      "date": "2026-01-31",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b35",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x4pf7uau",
+      "date": "2026-01-31",
+      "who": "imported",
+      "amount": 60,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxldq8dq",
+      "date": "2026-01-31",
+      "who": "imported",
+      "amount": 99.42,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtfcrlzp",
+      "date": "2026-02-01",
+      "who": "imported",
+      "amount": 119.65,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xymzyriw",
+      "date": "2026-02-01",
+      "who": "imported",
+      "amount": 41.47,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xd08hdl5",
+      "date": "2026-02-01",
+      "who": "imported",
+      "amount": 21.2,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xi9ndxcp",
+      "date": "2026-02-01",
+      "who": "imported",
+      "amount": 5.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x994ox9b",
+      "date": "2026-02-01",
+      "who": "imported",
+      "amount": 29.19,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x575adrc",
+      "date": "2026-02-02",
+      "who": "imported",
+      "amount": 31.02,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xz8qfq5t",
+      "date": "2026-02-02",
+      "who": "imported",
+      "amount": 14.99,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xrzilp8u",
+      "date": "2026-02-02",
+      "who": "imported",
+      "amount": 25,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x699ybg2",
+      "date": "2026-02-02",
+      "who": "imported",
+      "amount": 25,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xhm1eed7",
+      "date": "2026-02-02",
+      "who": "imported",
+      "amount": 154.58,
+      "bucket": "b14",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0obsm32",
+      "date": "2026-02-02",
+      "who": "imported",
+      "amount": 779.96,
+      "bucket": "b17",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdr4zwxy",
+      "date": "2026-02-02",
+      "who": "imported",
+      "amount": 235.4,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xs89sxnr",
+      "date": "2026-02-02",
+      "who": "imported",
+      "amount": 32.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlp7a1vx",
+      "date": "2026-02-03",
+      "who": "imported",
+      "amount": 15.95,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlchsicl",
+      "date": "2026-02-03",
+      "who": "imported",
+      "amount": 25,
+      "bucket": "b37",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0ei5ea6",
+      "date": "2026-02-04",
+      "who": "imported",
+      "amount": 50.89,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x2cmjrjs",
+      "date": "2026-02-04",
+      "who": "imported",
+      "amount": 3.5,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xqy0mc1t",
+      "date": "2026-02-04",
+      "who": "imported",
+      "amount": 47.64,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xexex08r",
+      "date": "2026-02-05",
+      "who": "imported",
+      "amount": 34.99,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0rewqqz",
+      "date": "2026-02-05",
+      "who": "imported",
+      "amount": 9,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfzomc1q",
+      "date": "2026-02-05",
+      "who": "imported",
+      "amount": 2.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5aoc7mb",
+      "date": "2026-02-06",
+      "who": "imported",
+      "amount": 114.64,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xonturna",
+      "date": "2026-02-06",
+      "who": "imported",
+      "amount": 256.34,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xd8264of",
+      "date": "2026-02-07",
+      "who": "imported",
+      "amount": 79.17,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x6r7gszk",
+      "date": "2026-02-07",
+      "who": "imported",
+      "amount": 41.58,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xigh4ki6",
+      "date": "2026-02-07",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xr2atvdm",
+      "date": "2026-02-08",
+      "who": "imported",
+      "amount": 58.96,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x3utnjnt",
+      "date": "2026-02-09",
+      "who": "imported",
+      "amount": 35.93,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0cggbs0",
+      "date": "2026-02-09",
+      "who": "imported",
+      "amount": 17.7,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xqc0h5iv",
+      "date": "2026-02-09",
+      "who": "imported",
+      "amount": 75,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0rl6ynl",
+      "date": "2026-02-09",
+      "who": "imported",
+      "amount": 198.35,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xiymnrm1",
+      "date": "2026-02-10",
+      "who": "imported",
+      "amount": 40.1,
+      "bucket": "b34",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x41jltfz",
+      "date": "2026-02-10",
+      "who": "imported",
+      "amount": 53,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0aeoh0h",
+      "date": "2026-02-11",
+      "who": "imported",
+      "amount": 6,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xjxldds5",
+      "date": "2026-02-11",
+      "who": "imported",
+      "amount": 53.13,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xkpbfugr",
+      "date": "2026-02-12",
+      "who": "imported",
+      "amount": 37.94,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xypq66wt",
+      "date": "2026-02-12",
+      "who": "imported",
+      "amount": 65.34,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xvpekq42",
+      "date": "2026-02-12",
+      "who": "imported",
+      "amount": 38.15,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xq6n70yx",
+      "date": "2026-02-13",
+      "who": "imported",
+      "amount": 142.89,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x8n580zg",
+      "date": "2026-02-14",
+      "who": "imported",
+      "amount": 36.23,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x8m77do9",
+      "date": "2026-02-14",
+      "who": "imported",
+      "amount": 93.44,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x95ttyvv",
+      "date": "2026-02-14",
+      "who": "imported",
+      "amount": 41.93,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgpul8z9",
+      "date": "2026-02-14",
+      "who": "imported",
+      "amount": 59.77,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxpfb55z",
+      "date": "2026-02-15",
+      "who": "imported",
+      "amount": 14.99,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtjaljym",
+      "date": "2026-02-15",
+      "who": "imported",
+      "amount": 134.38,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xp0cw8pp",
+      "date": "2026-02-15",
+      "who": "imported",
+      "amount": 17.96,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x8m6cm88",
+      "date": "2026-02-15",
+      "who": "imported",
+      "amount": 32,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xbddpy1p",
+      "date": "2026-02-16",
+      "who": "imported",
+      "amount": 15.45,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x3vjkd9i",
+      "date": "2026-02-16",
+      "who": "imported",
+      "amount": 8.35,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x016nvmp",
+      "date": "2026-02-16",
+      "who": "imported",
+      "amount": 30,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xw13w4ql",
+      "date": "2026-02-17",
+      "who": "imported",
+      "amount": 37.01,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxgco8nj",
+      "date": "2026-02-17",
+      "who": "imported",
+      "amount": 12,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xzuu9v22",
+      "date": "2026-02-17",
+      "who": "imported",
+      "amount": 1032.11,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xy8ffare",
+      "date": "2026-02-17",
+      "who": "imported",
+      "amount": 300,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xldlyvlw",
+      "date": "2026-02-17",
+      "who": "imported",
+      "amount": 81.02,
+      "bucket": "b21",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xe9mk15a",
+      "date": "2026-02-18",
+      "who": "imported",
+      "amount": 75.89,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xv3mmkvk",
+      "date": "2026-02-19",
+      "who": "imported",
+      "amount": 52.98,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xac8kcd8",
+      "date": "2026-02-19",
+      "who": "imported",
+      "amount": 30,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xu96dlnt",
+      "date": "2026-02-19",
+      "who": "imported",
+      "amount": 168,
+      "bucket": "b20",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtoax82v",
+      "date": "2026-02-20",
+      "who": "imported",
+      "amount": 35.41,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x45fb6lx",
+      "date": "2026-02-20",
+      "who": "imported",
+      "amount": 29.51,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xd993so5",
+      "date": "2026-02-20",
+      "who": "imported",
+      "amount": 27.72,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xej8ogaq",
+      "date": "2026-02-20",
+      "who": "imported",
+      "amount": 60,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfqimz3k",
+      "date": "2026-02-21",
+      "who": "imported",
+      "amount": 186.54,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xy333nps",
+      "date": "2026-02-21",
+      "who": "imported",
+      "amount": 57.7,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x9tbq18w",
+      "date": "2026-02-21",
+      "who": "imported",
+      "amount": 370.44,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwtcqj23",
+      "date": "2026-02-21",
+      "who": "imported",
+      "amount": 47.56,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfciga04",
+      "date": "2026-02-22",
+      "who": "imported",
+      "amount": 551.24,
+      "bucket": "b33",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwtyvzwc",
+      "date": "2026-02-22",
+      "who": "imported",
+      "amount": 551.24,
+      "bucket": "b34",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "x3gbi4ye",
+      "date": "2026-02-22",
+      "who": "imported",
+      "amount": 9.99,
+      "bucket": "b12",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x7n9kcgm",
+      "date": "2026-02-23",
+      "who": "imported",
+      "amount": 29.9,
+      "bucket": "b34",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xsnzonou",
+      "date": "2026-02-23",
+      "who": "imported",
+      "amount": 53.07,
+      "bucket": "b15",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xy3ztq0m",
+      "date": "2026-02-24",
+      "who": "imported",
+      "amount": 165.45,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xze1gd84",
+      "date": "2026-02-24",
+      "who": "imported",
+      "amount": 28.31,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xh3ddtfj",
+      "date": "2026-02-24",
+      "who": "imported",
+      "amount": 1.9,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdl41vo4",
+      "date": "2026-02-24",
+      "who": "imported",
+      "amount": 70.2,
+      "bucket": "b18",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5m4f1e1",
+      "date": "2026-02-24",
+      "who": "imported",
+      "amount": 12.98,
+      "bucket": "b12",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5s6uxvy",
+      "date": "2026-02-25",
+      "who": "imported",
+      "amount": 38.14,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x227bmj2",
+      "date": "2026-02-25",
+      "who": "imported",
+      "amount": 34.75,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xi4gvrbx",
+      "date": "2026-02-25",
+      "who": "imported",
+      "amount": 6,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xurr156i",
+      "date": "2026-02-25",
+      "who": "imported",
+      "amount": 34.74,
+      "bucket": "b40",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x21i1i31",
+      "date": "2026-02-26",
+      "who": "imported",
+      "amount": 4,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxofwm3q",
+      "date": "2026-02-26",
+      "who": "imported",
+      "amount": 97.61,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xohthsl9",
+      "date": "2026-02-27",
+      "who": "imported",
+      "amount": 37.64,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgjbdiqm",
+      "date": "2026-02-27",
+      "who": "imported",
+      "amount": 73.91,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xk4wc7lc",
+      "date": "2026-02-27",
+      "who": "imported",
+      "amount": 85,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xpzjdxfn",
+      "date": "2026-02-27",
+      "who": "imported",
+      "amount": 37,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgi881y8",
+      "date": "2026-02-27",
+      "who": "imported",
+      "amount": 73.67,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xe4xkrjv",
+      "date": "2026-02-27",
+      "who": "imported",
+      "amount": 61.49,
+      "bucket": "b39",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xjhje3cl",
+      "date": "2026-02-28",
+      "who": "imported",
+      "amount": 56.8,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x03fhs98",
+      "date": "2026-02-28",
+      "who": "imported",
+      "amount": 25,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x1m5uasi",
+      "date": "2026-02-28",
+      "who": "imported",
+      "amount": 23.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xj3k24p3",
+      "date": "2026-03-01",
+      "who": "imported",
+      "amount": 9.42,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x13d01uf",
+      "date": "2026-03-01",
+      "who": "imported",
+      "amount": 44.49,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x01qkgag",
+      "date": "2026-03-01",
+      "who": "imported",
+      "amount": 72.18,
+      "bucket": "b33",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x2p1708z",
+      "date": "2026-03-01",
+      "who": "imported",
+      "amount": 30.94,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xjznmu8h",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 6.97,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xhr173xm",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 139.6,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlxdv4iz",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 2.99,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xhd57nuk",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 5.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x86epvk1",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 154.58,
+      "bucket": "b14",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgmnn1kb",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 779.96,
+      "bucket": "b17",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xhv4hn1l",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 10.99,
+      "bucket": "b22",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xsgh9k59",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 235.4,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x4756n52",
+      "date": "2026-03-02",
+      "who": "imported",
+      "amount": 32.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xyp3knrg",
+      "date": "2026-03-04",
+      "who": "imported",
+      "amount": 38.22,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x41bmkqi",
+      "date": "2026-03-04",
+      "who": "imported",
+      "amount": 16,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xq1h29my",
+      "date": "2026-03-04",
+      "who": "imported",
+      "amount": 2.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwhtk7qo",
+      "date": "2026-03-06",
+      "who": "imported",
+      "amount": 256.34,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xvyzfkvl",
+      "date": "2026-03-07",
+      "who": "imported",
+      "amount": 10.36,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xo5bfgut",
+      "date": "2026-03-07",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xntjim8w",
+      "date": "2026-03-08",
+      "who": "imported",
+      "amount": 73.22,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlupwfz8",
+      "date": "2026-03-08",
+      "who": "imported",
+      "amount": 93.94,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxdj43w9",
+      "date": "2026-03-08",
+      "who": "imported",
+      "amount": 68.68,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xkf3nrl8",
+      "date": "2026-03-08",
+      "who": "imported",
+      "amount": 27,
+      "bucket": "b33",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xhni3d0r",
+      "date": "2026-03-09",
+      "who": "imported",
+      "amount": 18.25,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x8msb81n",
+      "date": "2026-03-10",
+      "who": "imported",
+      "amount": 216.07,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwnqva09",
+      "date": "2026-03-10",
+      "who": "imported",
+      "amount": 5000,
+      "bucket": "b41",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xz4zi7tf",
+      "date": "2026-03-11",
+      "who": "imported",
+      "amount": 26.46,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x4z1bhnd",
+      "date": "2026-03-11",
+      "who": "imported",
+      "amount": 14,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdo3o9y9",
+      "date": "2026-03-11",
+      "who": "imported",
+      "amount": 114,
+      "bucket": "b38",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxz90f3z",
+      "date": "2026-03-12",
+      "who": "imported",
+      "amount": 41.36,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0eovew0",
+      "date": "2026-03-13",
+      "who": "imported",
+      "amount": 43.62,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xy13wlny",
+      "date": "2026-03-13",
+      "who": "imported",
+      "amount": 60,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x3lyodyh",
+      "date": "2026-03-13",
+      "who": "imported",
+      "amount": 982.25,
+      "bucket": "b16",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xm8uiras",
+      "date": "2026-03-14",
+      "who": "imported",
+      "amount": 62.88,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0bgh8vs",
+      "date": "2026-03-14",
+      "who": "imported",
+      "amount": 49,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xa2jpd8v",
+      "date": "2026-03-14",
+      "who": "imported",
+      "amount": 85.68,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x3m4uvqc",
+      "date": "2026-03-14",
+      "who": "imported",
+      "amount": 27.9,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x7zq4oma",
+      "date": "2026-03-15",
+      "who": "imported",
+      "amount": 13.1,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xm4afgho",
+      "date": "2026-03-15",
+      "who": "imported",
+      "amount": 38.47,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xcehutdk",
+      "date": "2026-03-15",
+      "who": "imported",
+      "amount": 9.64,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xthz73cq",
+      "date": "2026-03-15",
+      "who": "imported",
+      "amount": 33,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xs77mtsh",
+      "date": "2026-03-15",
+      "who": "imported",
+      "amount": 217.47,
+      "bucket": "b14",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgnc1rhy",
+      "date": "2026-03-16",
+      "who": "imported",
+      "amount": 30,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xi7tugqx",
+      "date": "2026-03-16",
+      "who": "imported",
+      "amount": 73.46,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xig9m9sj",
+      "date": "2026-03-16",
+      "who": "imported",
+      "amount": 79,
+      "bucket": "b21",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x7t634v4",
+      "date": "2026-03-17",
+      "who": "imported",
+      "amount": 52.23,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgkghzq9",
+      "date": "2026-03-17",
+      "who": "imported",
+      "amount": 47.31,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x9qi09ag",
+      "date": "2026-03-18",
+      "who": "imported",
+      "amount": 57.41,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xnnef1dd",
+      "date": "2026-03-18",
+      "who": "imported",
+      "amount": 23.48,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xzhbet3v",
+      "date": "2026-03-19",
+      "who": "imported",
+      "amount": 34.77,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xfuh38zt",
+      "date": "2026-03-19",
+      "who": "imported",
+      "amount": 50.91,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtz68s83",
+      "date": "2026-03-19",
+      "who": "imported",
+      "amount": 21.71,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xt9qxkss",
+      "date": "2026-03-19",
+      "who": "imported",
+      "amount": 454.2,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x01rr6lt",
+      "date": "2026-03-20",
+      "who": "imported",
+      "amount": 8.47,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xcooqx4k",
+      "date": "2026-03-20",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b19",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x4tvsrxq",
+      "date": "2026-03-20",
+      "who": "imported",
+      "amount": 168,
+      "bucket": "b20",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xu7w3ldz",
+      "date": "2026-03-21",
+      "who": "imported",
+      "amount": 27.29,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xz8gehq8",
+      "date": "2026-03-21",
+      "who": "imported",
+      "amount": 78.45,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xbcrnh2u",
+      "date": "2026-03-21",
+      "who": "imported",
+      "amount": 25.23,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxmhzyd8",
+      "date": "2026-03-21",
+      "who": "imported",
+      "amount": 63.38,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5vfuc0q",
+      "date": "2026-03-21",
+      "who": "imported",
+      "amount": 5,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x66twaym",
+      "date": "2026-03-22",
+      "who": "imported",
+      "amount": 46.62,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xyyw7k23",
+      "date": "2026-03-22",
+      "who": "imported",
+      "amount": 11.99,
+      "bucket": "b12",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtws3qpg",
+      "date": "2026-03-23",
+      "who": "imported",
+      "amount": 23.25,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xz01ov7x",
+      "date": "2026-03-23",
+      "who": "imported",
+      "amount": 4,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x27dr8ze",
+      "date": "2026-03-23",
+      "who": "imported",
+      "amount": 53.07,
+      "bucket": "b15",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xk8bfiah",
+      "date": "2026-03-24",
+      "who": "imported",
+      "amount": 34.75,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xkqcpz4r",
+      "date": "2026-03-24",
+      "who": "imported",
+      "amount": 39.72,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x07h14a2",
+      "date": "2026-03-24",
+      "who": "imported",
+      "amount": 34.74,
+      "bucket": "b40",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xe2svt8g",
+      "date": "2026-03-24",
+      "who": "imported",
+      "amount": 70.2,
+      "bucket": "b18",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xx6pqurc",
+      "date": "2026-03-24",
+      "who": "imported",
+      "amount": 12.98,
+      "bucket": "b12",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xohfncv4",
+      "date": "2026-03-25",
+      "who": "imported",
+      "amount": 15.77,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xws67jau",
+      "date": "2026-03-25",
+      "who": "imported",
+      "amount": 54.57,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x88xifkw",
+      "date": "2026-03-26",
+      "who": "imported",
+      "amount": 46.36,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxrtx337",
+      "date": "2026-03-26",
+      "who": "imported",
+      "amount": 89.67,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x6g84k1r",
+      "date": "2026-03-26",
+      "who": "imported",
+      "amount": 35.94,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xw1i6gbg",
+      "date": "2026-03-26",
+      "who": "imported",
+      "amount": 6.6,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xaj2ietp",
+      "date": "2026-03-26",
+      "who": "imported",
+      "amount": 345,
+      "bucket": "b35",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xhxsnylm",
+      "date": "2026-03-26",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x4ab064r",
+      "date": "2026-03-27",
+      "who": "imported",
+      "amount": 43.92,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xleyxych",
+      "date": "2026-03-27",
+      "who": "imported",
+      "amount": 37.52,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xnkbl6tj",
+      "date": "2026-03-27",
+      "who": "imported",
+      "amount": 51.13,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xq1e5wnc",
+      "date": "2026-03-27",
+      "who": "imported",
+      "amount": 15.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xo5vasjc",
+      "date": "2026-03-27",
+      "who": "imported",
+      "amount": 112.85,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x2v6fy21",
+      "date": "2026-03-27",
+      "who": "imported",
+      "amount": 99,
+      "bucket": "b22",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xx67ybvs",
+      "date": "2026-03-28",
+      "who": "imported",
+      "amount": 49.15,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xmj9khrp",
+      "date": "2026-03-28",
+      "who": "imported",
+      "amount": 129.47,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x39jgvv3",
+      "date": "2026-03-28",
+      "who": "imported",
+      "amount": 71.72,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x7goh36d",
+      "date": "2026-03-28",
+      "who": "imported",
+      "amount": 15.09,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xl3t0q26",
+      "date": "2026-03-28",
+      "who": "imported",
+      "amount": 23.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xj9sz32u",
+      "date": "2026-03-29",
+      "who": "imported",
+      "amount": 8.92,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwoou0q6",
+      "date": "2026-03-29",
+      "who": "imported",
+      "amount": 39.03,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xstdu35r",
+      "date": "2026-03-29",
+      "who": "imported",
+      "amount": 59.82,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xr2g88h8",
+      "date": "2026-03-30",
+      "who": "imported",
+      "amount": 72,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xsm5w1tu",
+      "date": "2026-03-30",
+      "who": "imported",
+      "amount": 2.99,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xct34iye",
+      "date": "2026-03-30",
+      "who": "imported",
+      "amount": 153.23,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xsecemzw",
+      "date": "2026-03-31",
+      "who": "imported",
+      "amount": 18.89,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x2ut095c",
+      "date": "2026-03-31",
+      "who": "imported",
+      "amount": 37.08,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xh4yqdf8",
+      "date": "2026-03-31",
+      "who": "imported",
+      "amount": 147.5,
+      "bucket": "b14",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xe7avzei",
+      "date": "2026-03-31",
+      "who": "imported",
+      "amount": 1000,
+      "bucket": "b41",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x4eln0ss",
+      "date": "2026-04-01",
+      "who": "imported",
+      "amount": 51.04,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xg0vqeee",
+      "date": "2026-04-01",
+      "who": "imported",
+      "amount": 5.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xumy10t9",
+      "date": "2026-04-01",
+      "who": "imported",
+      "amount": 779.96,
+      "bucket": "b17",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xwa5i0t7",
+      "date": "2026-04-02",
+      "who": "imported",
+      "amount": 11.9,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xnorv5ee",
+      "date": "2026-04-02",
+      "who": "imported",
+      "amount": 21.44,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xebeiavn",
+      "date": "2026-04-02",
+      "who": "imported",
+      "amount": 235.4,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxowrnqu",
+      "date": "2026-04-02",
+      "who": "imported",
+      "amount": 32.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x35gigl2",
+      "date": "2026-04-03",
+      "who": "imported",
+      "amount": 45.55,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xh63wc9g",
+      "date": "2026-04-03",
+      "who": "imported",
+      "amount": 2.96,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xzk6njrp",
+      "date": "2026-04-03",
+      "who": "imported",
+      "amount": 25.57,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0kplrxu",
+      "date": "2026-04-03",
+      "who": "imported",
+      "amount": 60,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xft54vpo",
+      "date": "2026-04-04",
+      "who": "imported",
+      "amount": 109.84,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x1o8xeyb",
+      "date": "2026-04-04",
+      "who": "imported",
+      "amount": 9.98,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x50bj9dt",
+      "date": "2026-04-04",
+      "who": "imported",
+      "amount": 264.13,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xses41mu",
+      "date": "2026-04-04",
+      "who": "imported",
+      "amount": 113.87,
+      "bucket": "b33",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x85m3uli",
+      "date": "2026-04-04",
+      "who": "imported",
+      "amount": 28.27,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xuiw0vsz",
+      "date": "2026-04-04",
+      "who": "imported",
+      "amount": 22.26,
+      "bucket": "b35",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxu91l4r",
+      "date": "2026-04-04",
+      "who": "imported",
+      "amount": 26.47,
+      "bucket": "b37",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x6kdcxvw",
+      "date": "2026-04-04",
+      "who": "imported",
+      "amount": 222.86,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xoobwhif",
+      "date": "2026-04-05",
+      "who": "imported",
+      "amount": 12.12,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgbdh2fd",
+      "date": "2026-04-06",
+      "who": "imported",
+      "amount": 10.59,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x24tcqrt",
+      "date": "2026-04-06",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5wqtw26",
+      "date": "2026-04-06",
+      "who": "imported",
+      "amount": 2.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xowuwoi4",
+      "date": "2026-04-06",
+      "who": "imported",
+      "amount": 198.35,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xbk3ne46",
+      "date": "2026-04-06",
+      "who": "imported",
+      "amount": 256.34,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0b73owk",
+      "date": "2026-04-07",
+      "who": "imported",
+      "amount": 54.62,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xk4pbjqt",
+      "date": "2026-04-08",
+      "who": "imported",
+      "amount": 23.04,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xk3a48py",
+      "date": "2026-04-08",
+      "who": "imported",
+      "amount": 70,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x5whh6g2",
+      "date": "2026-04-09",
+      "who": "imported",
+      "amount": 53.47,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxvkcibw",
+      "date": "2026-04-09",
+      "who": "imported",
+      "amount": 71.27,
+      "bucket": "b28",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgs02bnm",
+      "date": "2026-04-09",
+      "who": "imported",
+      "amount": 3.29,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xn2yblri",
+      "date": "2026-04-09",
+      "who": "imported",
+      "amount": 37.01,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xf8qcy4l",
+      "date": "2026-04-09",
+      "who": "imported",
+      "amount": 33,
+      "bucket": "b36",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x7pch3er",
+      "date": "2026-04-10",
+      "who": "imported",
+      "amount": 7000,
+      "bucket": "b41",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xkalexwl",
+      "date": "2026-04-14",
+      "who": "imported",
+      "amount": 198.1,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xnu91e4m",
+      "date": "2026-04-14",
+      "who": "imported",
+      "amount": 79,
+      "bucket": "b21",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xf104b38",
+      "date": "2026-04-16",
+      "who": "imported",
+      "amount": 65.67,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xdg382si",
+      "date": "2026-04-17",
+      "who": "imported",
+      "amount": 9.01,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxfj2u7v",
+      "date": "2026-04-18",
+      "who": "imported",
+      "amount": 35.36,
+      "bucket": "b29",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xrbnedur",
+      "date": "2026-04-18",
+      "who": "imported",
+      "amount": 74.54,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xy2uddrm",
+      "date": "2026-04-18",
+      "who": "imported",
+      "amount": 143.2,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x9x5af3k",
+      "date": "2026-04-19",
+      "who": "imported",
+      "amount": 69.2,
+      "bucket": "b31",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlxrsl6s",
+      "date": "2026-04-19",
+      "who": "imported",
+      "amount": 5,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xrj2zt3h",
+      "date": "2026-04-20",
+      "who": "imported",
+      "amount": 4,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xxuhejh9",
+      "date": "2026-04-20",
+      "who": "imported",
+      "amount": 53.08,
+      "bucket": "b15",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgru40j1",
+      "date": "2026-04-20",
+      "who": "imported",
+      "amount": 168,
+      "bucket": "b20",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xuc8cojw",
+      "date": "2026-04-21",
+      "who": "imported",
+      "amount": 50.54,
+      "bucket": "b27",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xs577xhh",
+      "date": "2026-04-21",
+      "who": "imported",
+      "amount": 84.52,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xgkhpezk",
+      "date": "2026-04-22",
+      "who": "imported",
+      "amount": 1.98,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xqt8o3u4",
+      "date": "2026-04-22",
+      "who": "imported",
+      "amount": 93.28,
+      "bucket": "b39",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x4lrd86w",
+      "date": "2026-04-22",
+      "who": "imported",
+      "amount": 11.99,
+      "bucket": "b12",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xpktrvsr",
+      "date": "2026-04-23",
+      "who": "imported",
+      "amount": 1.9,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xpx88avx",
+      "date": "2026-04-23",
+      "who": "imported",
+      "amount": 70.2,
+      "bucket": "b18",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x90j689a",
+      "date": "2026-04-27",
+      "who": "imported",
+      "amount": 16,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xihohna6",
+      "date": "2026-04-28",
+      "who": "imported",
+      "amount": 34.75,
+      "bucket": "b30",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x7lp2hba",
+      "date": "2026-04-28",
+      "who": "imported",
+      "amount": 34.74,
+      "bucket": "b40",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlyvs8ll",
+      "date": "2026-04-28",
+      "who": "imported",
+      "amount": 23.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0e9argb",
+      "date": "2026-04-30",
+      "who": "imported",
+      "amount": 124.57,
+      "bucket": "b14",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xr91oe39",
+      "date": "2026-05-01",
+      "who": "imported",
+      "amount": 2.99,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x9nacxkq",
+      "date": "2026-05-01",
+      "who": "imported",
+      "amount": 5.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xq1qlz5s",
+      "date": "2026-05-01",
+      "who": "imported",
+      "amount": 757.13,
+      "bucket": "b17",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xlloxuri",
+      "date": "2026-05-02",
+      "who": "imported",
+      "amount": 20,
+      "bucket": "b31",
+      "desc": "",
+      "type": "income"
+    },
+    {
+      "id": "xaxy3css",
+      "date": "2026-05-02",
+      "who": "imported",
+      "amount": 3.98,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xtjqltk0",
+      "date": "2026-05-02",
+      "who": "imported",
+      "amount": 235.4,
+      "bucket": "b25",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xzkr1033",
+      "date": "2026-05-03",
+      "who": "imported",
+      "amount": 32.99,
+      "bucket": "b26",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xoiesqga",
+      "date": "2026-05-04",
+      "who": "imported",
+      "amount": 10.74,
+      "bucket": "b32",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "xt3l60g2",
+      "date": "2026-05-04",
+      "who": "imported",
+      "amount": 2624.46,
+      "bucket": "b42",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x0wr783y",
+      "date": "2026-05-05",
+      "who": "imported",
+      "amount": 2.99,
+      "bucket": "b34",
+      "desc": "",
+      "type": "expense"
+    },
+    {
+      "id": "x7uz4177",
+      "date": "2026-05-05",
+      "who": "imported",
+      "amount": 301.09,
+      "bucket": "b42",
+      "desc": "",
+      "type": "expense"
+    }
+  ],
+  "paychecks": [],
+  "accounts": [
+    {
+      "id": "a1",
+      "bank": "LMCU",
+      "name": "Checking",
+      "balance": 6212.97,
+      "notes": "Bills bucket"
+    },
+    {
+      "id": "a2",
+      "bank": "LMCU",
+      "name": "Savings",
+      "balance": 8135.62,
+      "notes": "Spending + savings"
+    },
+    {
+      "id": "a3",
+      "bank": "Huntington",
+      "name": "Checking",
+      "balance": 4314.33,
+      "notes": "Accrual bucket"
+    },
+    {
+      "id": "a4",
+      "bank": "Huntington",
+      "name": "Savings",
+      "balance": -6889.85,
+      "notes": "Amex pending $12,812"
+    }
+  ]
+}
