@@ -432,6 +432,7 @@ function renderTransactions() {
 }
 
 function transactionFormHtml(transaction = {}) {
+  transaction = transaction || {};
   const typeOptions = [...new Set([...(transaction.type === 'income' ? ['income'] : []), ...USER_TRANSACTION_TYPES])];
   return `<div class="form">
     <label>Date<input id="tx_date" type="date" value="${escapeHtml(transaction.date || today())}"></label>
@@ -575,10 +576,12 @@ function renderPaychecks() {
 }
 
 function paycheckFormHtml(paycheck = {}) {
+  paycheck = paycheck || {};
   return `<div class="form"><label>Date<input id="p_date" type="date" value="${escapeHtml(paycheck.date || '')}"></label><label>Who<input id="p_who" value="${escapeHtml(paycheck.who || '')}"></label><label>Amount<input id="p_amount" type="number" step="0.01" value="${escapeHtml(paycheck.amount ?? '')}"></label><label class="wide">Notes<input id="p_notes" value="${escapeHtml(paycheck.notes || '')}"></label><div class="actions"><button onclick="savePaycheck('${paycheck.id || ''}')">${paycheck.id ? 'Save' : 'Add'}</button>${paycheck.id ? '<button class="secondary" onclick="drill=null;render()">Cancel</button>' : ''}</div></div>`;
 }
 
 function overageFormHtml(allocation = {}) {
+  allocation = allocation || {};
   return `<div class="form">
     <label>Date<input id="ov_date" type="date" value="${escapeHtml(allocation.date || today())}"></label>
     <label>Who<select id="ov_who">${PEOPLE.filter(person => person !== 'imported').map(person => `<option ${person === (allocation.who || 'Both') ? 'selected' : ''}>${person}</option>`).join('')}</select></label>
