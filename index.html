@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chris & Sarah Budget</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --ink: #142033;
+      --muted: #667085;
+      --line: #d9e2ef;
+      --brand: #1d4ed8;
+      --brand-dark: #183b86;
+      --good: #067647;
+      --bad: #b42318;
+      --warn: #b54708;
+      --soft: #eef4ff;
+      --shadow: 0 18px 45px rgba(16, 24, 40, .08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial; }
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; border-radius: 10px; background: var(--brand); color: #fff; cursor: pointer; font-weight: 750; padding: 9px 13px; }
+    button:hover { background: var(--brand-dark); }
+    button.secondary { background: #e8eef7; color: #24324a; }
+    button.secondary:hover { background: #dbe5f2; }
+    button.danger { background: var(--bad); }
+    button.ghost { background: transparent; color: var(--brand); padding: 4px 6px; }
+    input, select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); padding: 8px 10px; }
+    textarea { min-height: 72px; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    code { background: #edf2f7; border-radius: 6px; padding: 2px 5px; }
+    .app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    .side { position: sticky; top: 0; height: 100vh; overflow: auto; padding: 24px 18px; background: #101828; color: #e6edf7; }
+    .brand { font-size: 20px; font-weight: 850; }
+    .sub { color: #98a2b3; font-size: 12px; margin: 4px 0 20px; }
+    .nav { display: grid; gap: 6px; }
+    .nav button { background: transparent; color: #d0d5dd; padding: 10px 12px; text-align: left; }
+    .nav button.active, .nav button:hover { background: #1d2939; color: #fff; }
+    .main { max-width: 1520px; padding: 28px; }
+    .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .h1 { font-size: 28px; font-weight: 850; margin: 0; }
+    .status { color: var(--muted); font-size: 12px; }
+    .grid { display: grid; gap: 16px; }
+    .cards { grid-template-columns: repeat(5, minmax(150px, 1fr)); }
+    .two { grid-template-columns: 1.08fr .92fr; }
+    .three { grid-template-columns: repeat(3, 1fr); }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 18px; }
+    .label, .metric .label { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    .metric .value { font-size: 23px; font-weight: 850; margin-top: 5px; }
+    .row { display: flex; align-items: center; gap: 10px; }
+    .between { justify-content: space-between; }
+    .form { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; align-items: end; }
+    .form .wide { grid-column: span 2; }
+    .form .full { grid-column: 1 / -1; }
+    .tablewrap { border: 1px solid var(--line); border-radius: 14px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; background: #f8fafc; color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    tr:hover td { background: #fbfdff; }
+    .pill { display: inline-flex; border-radius: 999px; padding: 3px 8px; background: #eef4ff; color: var(--brand); font-size: 12px; font-weight: 850; }
+    .pill.bad { background: #fef3f2; color: var(--bad); }
+    .pill.good { background: #ecfdf3; color: var(--good); }
+    .bar { height: 10px; overflow: hidden; background: #edf2f7; border-radius: 999px; }
+    .bar span { display: block; height: 100%; background: linear-gradient(90deg, #0f766e, #22c55e); }
+    .bar span.over { background: linear-gradient(90deg, #f59e0b, var(--bad)); }
+    .tabs-note, .manual { border-radius: 14px; padding: 12px 14px; margin-bottom: 16px; }
+    .tabs-note { border: 1px solid #c7d7fe; background: var(--soft); }
+    .manual { border: 1px dashed #f59e0b; background: #fffbeb; }
+    .alerts { display: grid; gap: 8px; }
+    .alert { border-left: 4px solid var(--warn); border-radius: 10px; background: #fffbeb; padding: 10px 12px; }
+    .alert.bad { border-color: var(--bad); background: #fef3f2; }
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .clickable { color: var(--brand); cursor: pointer; font-weight: 850; }
+    .schema { max-height: 440px; overflow: auto; white-space: pre-wrap; background: #0b1220; color: #dbeafe; border-radius: 12px; padding: 12px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    .pos { color: var(--good); }
+    .neg { color: var(--bad); }
+    .warn { color: var(--warn); }
+    .hidden { display: none !important; }
+    @media (max-width: 1000px) {
+      .app, .cards, .two, .three, .form { grid-template-columns: 1fr; }
+      .side { position: static; height: auto; }
+      .main { padding: 16px; }
+      .form .wide { grid-column: auto; }
+      .top { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="brand">Chris &amp; Sarah Budget</div>
+      <div class="sub">Single-file financial dashboard</div>
+      <nav class="nav" id="nav"></nav>
+    </aside>
+    <main class="main">
+      <div class="top">
+        <div>
+          <h1 class="h1" id="title">Dashboard</h1>
+          <div class="status" id="status">Loading…</div>
+        </div>
+        <div class="row">
+          <button class="secondary" onclick="exportJson()">Export JSON</button>
+          <button onclick="activeTab='Transactions'; drill=null; render()">Add Transaction</button>
+        </div>
+      </div>
+      <div id="manualImport" class="manual hidden"></div>
+      <section id="view"></section>
+    </main>
+  </div>
+
+<script>
+'use strict';
+
+const STORE_KEY = 'cs_budget_state_v2';
+const LEGACY_STORE_KEY = 'cs_budget_state_v1';
+const SEED_FILE = 'budget_backup_2026-05-05.json';
+const TABS = ['Dashboard', 'Transactions', 'Buckets', 'Bills', 'Credit Cards', 'Paychecks', 'Accounts', 'Backup/Import', 'Setup'];
+const CARDS = ['Amazon', 'Chase', "Lowe's", "Macy's"];
+const PEOPLE = ['Chris', 'Sarah', 'Both', 'imported'];
+const USER_TRANSACTION_TYPES = ['expense', 'refund'];
+const ALL_TRANSACTION_TYPES = ['expense', 'refund', 'income'];
+
+let state = null;
+let activeTab = 'Dashboard';
+let filterMonth = '';
+let billFilterMonth = '';
+let drill = null;
+
+const byId = id => document.getElementById(id);
+const today = () => new Date().toISOString().slice(0, 10);
+const uid = (prefix = 'id') => prefix + Math.random().toString(36).slice(2, 10);
+const number = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+const monthOf = date => String(date || '').slice(0, 7);
+const monthKey = (year, month) => `${Math.round(number(year))}-${String(Math.max(1, Math.min(12, Math.round(number(month) || 1)))).padStart(2, '0')}`;
+const currentBudgetMonthKey = () => monthKey(state?.cfg?.year || new Date().getFullYear(), currentMonthNumber());
+const money = value => number(value).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+
+function normalize(raw, source = 'import') {
+  const input = raw && typeof raw === 'object' ? structuredClone(raw) : {};
+  const cfg = { ...(input.cfg || {}) };
+  cfg.month = Math.max(1, Math.min(12, Math.round(number(cfg.month) || new Date().getMonth() + 1)));
+  cfg.year = Math.round(number(cfg.year) || new Date().getFullYear());
+  cfg.emergencyFund = number(cfg.emergencyFund);
+
+  const buckets = Array.isArray(input.buckets) ? input.buckets.map((original, index) => ({
+    ...original,
+    id: String(original.id || uid('b')),
+    name: String(original.name || `Bucket ${index + 1}`),
+    type: String(original.type || 'spending'),
+    monthly: number(original.monthly)
+  })) : [];
+
+  const transactions = Array.isArray(input.transactions) ? input.transactions.map(original => {
+    const normalizedType = ALL_TRANSACTION_TYPES.includes(original.type) ? original.type : 'expense';
+    return {
+      ...original,
+      id: String(original.id || uid('tx')),
+      date: original.date || today(),
+      who: original.who || 'Both',
+      amount: number(original.amount),
+      bucket: original.bucket || '',
+      card: original.card || '',
+      desc: original.desc ?? original.description ?? '',
+      type: normalizedType
+    };
+  }) : [];
+
+  const accounts = Array.isArray(input.accounts) ? input.accounts.map((original, index) => ({
+    ...original,
+    id: String(original.id || uid('a')),
+    bank: original.bank || '',
+    name: original.name || `Account ${index + 1}`,
+    balance: number(original.balance),
+    notes: original.notes || ''
+  })) : [];
+
+  const paychecks = Array.isArray(input.paychecks) ? input.paychecks.map(original => ({
+    ...original,
+    id: String(original.id || uid('p')),
+    date: original.date || '',
+    who: original.who || '',
+    amount: number(original.amount),
+    notes: original.notes || ''
+  })) : [];
+
+  const cards = Object.fromEntries(CARDS.map(card => {
+    const cardInput = input.cards?.[card] || {};
+    return [card, {
+      ...cardInput,
+      name: card,
+      lastPaidAt: cardInput.lastPaidAt || '',
+      paidThrough: cardInput.paidThrough || '',
+      payments: Array.isArray(cardInput.payments) ? cardInput.payments : []
+    }];
+  }));
+
+  const overageAllocations = Array.isArray(input.overageAllocations) ? input.overageAllocations.map(original => ({
+    ...original,
+    id: String(original.id || uid('ov')),
+    date: original.date || today(),
+    who: original.who || 'Both',
+    amount: number(original.amount),
+    bucket: original.bucket || '',
+    paycheckId: original.paycheckId || '',
+    notes: original.notes || original.desc || ''
+  })) : [];
+
+  return {
+    ...input,
+    appVersion: 2,
+    source,
+    loadedAt: input.loadedAt || new Date().toISOString(),
+    version: input.version ?? null,
+    exportedAt: input.exportedAt ?? null,
+    cfg,
+    buckets,
+    transactions,
+    accounts,
+    paychecks,
+    cards,
+    overageAllocations,
+    rawMeta: input.rawMeta || Object.fromEntries(Object.entries(input).filter(([key]) => !['cfg', 'buckets', 'transactions', 'accounts', 'paychecks', 'cards', 'overageAllocations'].includes(key)))
+  };
+}
+
+async function init() {
+  renderNav();
+  const saved = localStorage.getItem(STORE_KEY) || localStorage.getItem(LEGACY_STORE_KEY);
+  if (saved) {
+    try {
+      state = normalize(JSON.parse(saved), 'localStorage');
+      initializeFilters();
+      render();
+      return;
+    } catch (error) {
+      console.warn('Ignoring unreadable saved budget data and falling back to seed data.', error);
+    }
+  }
+
+  try {
+    const response = await fetch(SEED_FILE, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    state = normalize(await response.json(), 'seed fetch');
+    persist();
+  } catch (error) {
+    state = normalize({}, 'empty');
+    showManualImport(error);
+  }
+  initializeFilters();
+  render();
+}
+
+function initializeFilters() {
+  filterMonth = currentBudgetMonthKey();
+  billFilterMonth = currentBudgetMonthKey();
+}
+
+function persist() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+
+function save() {
+  persist();
+  render();
+}
+
+function showManualImport(error) {
+  byId('manualImport').classList.remove('hidden');
+  byId('manualImport').innerHTML = `<strong>Manual import needed.</strong> The seed file could not be fetched (${escapeHtml(error.message)}). If you opened this with <code>file://</code>, your browser likely blocked <code>fetch()</code>. Use Backup/Import to choose <code>${SEED_FILE}</code>, or run a local server.`;
+}
+
+function renderNav() {
+  byId('nav').innerHTML = TABS.map(tab => `<button class="${tab === activeTab ? 'active' : ''}" onclick="setTab('${tab}')">${tab}</button>`).join('');
+}
+
+function setTab(tab) {
+  activeTab = tab;
+  drill = null;
+  render();
+}
+
+function render() {
+  if (!state) return;
+  byId('title').textContent = activeTab;
+  byId('status').textContent = `${state.source}; ${state.buckets.length} buckets, ${state.transactions.length} transactions, ${state.accounts.length} accounts`;
+  renderNav();
+  const view = {
+    Dashboard: renderDashboard,
+    Transactions: renderTransactions,
+    Buckets: renderBuckets,
+    Bills: renderBills,
+    'Credit Cards': renderCreditCards,
+    Paychecks: renderPaychecks,
+    Accounts: renderAccounts,
+    'Backup/Import': renderBackupImport,
+    Setup: renderSetup
+  }[activeTab] || renderDashboard;
+  view();
+}
+
+function bucket(id) {
+  return state.buckets.find(item => item.id === id) || { id, name: 'Unassigned', type: 'spending', monthly: 0 };
+}
+
+function currentMonthNumber() {
+  return Math.max(1, Math.min(12, number(state.cfg.month) || 1));
+}
+
+function transactionSignedAmount(transaction) {
+  const amount = Math.abs(number(transaction.amount));
+  return transaction.type === 'refund' || transaction.type === 'income' ? -amount : amount;
+}
+
+function transactionsForMonth(month) {
+  return month ? state.transactions.filter(transaction => monthOf(transaction.date) === month) : state.transactions;
+}
+
+function spendingForBucket(bucketId, transactions = state.transactions) {
+  return transactions.filter(transaction => transaction.bucket === bucketId).reduce((sum, transaction) => sum + transactionSignedAmount(transaction), 0);
+}
+
+function overageAllocatedToBucket(bucketId) {
+  return (state.overageAllocations || [])
+    .filter(allocation => allocation.bucket === bucketId)
+    .reduce((sum, allocation) => sum + number(allocation.amount), 0);
+}
+
+function totalOverageAllocated() {
+  return (state.overageAllocations || []).reduce((sum, allocation) => sum + number(allocation.amount), 0);
+}
+
+// Financial logic: bucket YTD accrual is monthly budget times the manually controlled month number.
+// Actual spending is not normalized to budget; expenses increase spending and refunds/imported income reduce it.
+// Paycheck overage allocations are tracked separately from bank transactions, so they can increase bucket
+// available balances without creating fake income transactions that would break account reconciliation.
+function bucketMetrics(item, transactions = state.transactions, monthCount = currentMonthNumber()) {
+  const accrued = number(item.monthly) * monthCount;
+  const overageAllocated = overageAllocatedToBucket(item.id);
+  const available = accrued + overageAllocated;
+  const spent = spendingForBucket(item.id, transactions);
+  return { accrued, overageAllocated, available, spent, balance: available - spent };
+}
+
+function monthOptions(selected, includeAll = true) {
+  const months = [...new Set(state.transactions.map(transaction => monthOf(transaction.date)).filter(Boolean))].sort().reverse();
+  if (!months.includes(currentBudgetMonthKey())) months.unshift(currentBudgetMonthKey());
+  return `${includeAll ? '<option value="">All months</option>' : ''}${months.map(month => `<option value="${month}" ${selected === month ? 'selected' : ''}>${month}</option>`).join('')}`;
+}
+
+function renderDashboard() {
+  const dashboardTransactions = transactionsForMonth(filterMonth);
+  const thisMonthTransactions = transactionsForMonth(currentBudgetMonthKey());
+  const totalCash = state.accounts.reduce((sum, account) => sum + number(account.balance), 0);
+  const spentThisMonth = thisMonthTransactions.reduce((sum, transaction) => sum + transactionSignedAmount(transaction), 0);
+  const bucketBalance = state.buckets.reduce((sum, item) => sum + bucketMetrics(item, dashboardTransactions).balance, 0);
+  const creditCardBalance = CARDS.reduce((sum, card) => sum + creditCardBalanceFor(card).balance, 0);
+
+  byId('view').innerHTML = `
+    <div class="tabs-note row between">
+      <span>Inline-edit account balances, emergency fund, and current month number. Bucket health is filterable by month.</span>
+      <select style="max-width:180px" onchange="filterMonth=this.value;render()">${monthOptions(filterMonth, true)}</select>
+    </div>
+    <div class="grid cards">
+      <div class="panel metric"><div class="label">Total cash/accounts</div><div class="value">${money(totalCash)}</div></div>
+      <div class="panel metric"><div class="label">Emergency fund</div><input type="number" step="0.01" value="${state.cfg.emergencyFund}" onchange="state.cfg.emergencyFund=number(this.value);save()"></div>
+      <div class="panel metric"><div class="label">Spent ${currentBudgetMonthKey()}</div><div class="value ${spentThisMonth > 0 ? 'neg' : 'pos'}">${money(spentThisMonth)}</div></div>
+      <div class="panel metric"><div class="label">Bucket balance${filterMonth ? ` (${filterMonth})` : ''}</div><div class="value ${bucketBalance < 0 ? 'neg' : 'pos'}">${money(bucketBalance)}</div></div>
+      <div class="panel metric"><div class="label">Credit card balances</div><div class="value ${creditCardBalance > 0 ? 'warn' : ''}">${money(creditCardBalance)}</div></div>
+    </div>
+    <div class="tabs-note" style="margin-top:16px">Paycheck overage allocated to buckets: <strong>${money(totalOverageAllocated())}</strong>. These are non-bank funding moves, not transactions, so account reconciliation stays tied to real bank balances.</div>
+    <div class="grid two" style="margin-top:16px">
+      <div class="panel"><h2>Alerts</h2><div class="alerts">${alertsHtml(dashboardTransactions)}</div></div>
+      <div class="panel"><h2>Manual controls</h2>${manualControlsHtml()}</div>
+    </div>
+    <div class="grid two" style="margin-top:16px">
+      <div class="panel"><h2>Bucket health</h2>${bucketHealthHtml(dashboardTransactions)}</div>
+      <div class="panel"><h2>Recent transactions</h2>${transactionsTable([...state.transactions].sort((a,b) => String(b.date).localeCompare(String(a.date))).slice(0, 10), false)}</div>
+    </div>`;
+}
+
+function manualControlsHtml() {
+  return `<div class="form">
+    <label>Current month #<input type="number" min="1" max="12" value="${state.cfg.month}" onchange="state.cfg.month=number(this.value);filterMonth=currentBudgetMonthKey();billFilterMonth=currentBudgetMonthKey();save()"></label>
+    <label>Year<input type="number" value="${state.cfg.year}" onchange="state.cfg.year=number(this.value);filterMonth=currentBudgetMonthKey();billFilterMonth=currentBudgetMonthKey();save()"></label>
+    ${state.accounts.map(account => `<label class="wide">${escapeHtml(account.bank)} ${escapeHtml(account.name)}<input type="number" step="0.01" value="${account.balance}" onchange="updateAccount('${account.id}',this.value)"></label>`).join('')}
+  </div>`;
+}
+
+function alertsHtml(transactions) {
+  const alerts = [];
+  state.accounts.filter(account => number(account.balance) < 0).forEach(account => alerts.push(`<div class="alert bad">Overdrawn account: <strong>${escapeHtml(account.bank)} ${escapeHtml(account.name)}</strong> ${money(account.balance)}</div>`));
+  state.buckets.forEach(item => {
+    const metrics = bucketMetrics(item, transactions);
+    if (metrics.balance < 0) alerts.push(`<div class="alert bad">Over-budget bucket: <strong>${escapeHtml(item.name)}</strong> ${money(metrics.balance)}</div>`);
+  });
+  CARDS.forEach(card => {
+    const balance = creditCardBalanceFor(card).balance;
+    if (balance > 0) alerts.push(`<div class="alert">Unpaid ${escapeHtml(card)} balance: <strong>${money(balance)}</strong></div>`);
+  });
+  return alerts.join('') || '<div class="muted">No alerts.</div>';
+}
+
+function bucketHealthHtml(transactions) {
+  return state.buckets.map(item => {
+    const metrics = bucketMetrics(item, transactions);
+    const percent = metrics.accrued ? Math.min(150, Math.max(0, metrics.spent / metrics.accrued * 100)) : 0;
+    return `<div style="margin:12px 0">
+      <div class="row between"><span class="clickable" onclick="drillBucket('${item.id}')">${escapeHtml(item.name)}</span><span>${money(metrics.spent)} / ${money(metrics.available)}</span></div>
+      <div class="bar"><span class="${metrics.balance < 0 ? 'over' : ''}" style="width:${Math.min(100, percent)}%"></span></div>
+      <div class="small ${metrics.balance < 0 ? 'neg' : 'pos'}">Balance ${money(metrics.balance)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTransactions() {
+  const editing = drill?.tx ? state.transactions.find(transaction => transaction.id === drill.tx) : null;
+  const transactions = (drill?.bucket ? state.transactions.filter(transaction => transaction.bucket === drill.bucket) : state.transactions)
+    .slice()
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+  byId('view').innerHTML = `
+    ${drill?.bucket ? `<div class="tabs-note"><button class="secondary" onclick="drill=null;render()">Back</button> Showing transactions for <strong>${escapeHtml(bucket(drill.bucket).name)}</strong></div>` : ''}
+    <div class="panel"><h2>${editing ? 'Edit' : 'Add'} transaction</h2>${transactionFormHtml(editing)}</div>
+    <div class="panel" style="margin-top:16px"><h2>Transactions</h2>${transactionsTable(transactions, true)}</div>`;
+}
+
+function transactionFormHtml(transaction = {}) {
+  const typeOptions = [...new Set([...(transaction.type === 'income' ? ['income'] : []), ...USER_TRANSACTION_TYPES])];
+  return `<div class="form">
+    <label>Date<input id="tx_date" type="date" value="${escapeHtml(transaction.date || today())}"></label>
+    <label>Who<select id="tx_who">${PEOPLE.map(person => `<option ${person === (transaction.who || 'Both') ? 'selected' : ''}>${person}</option>`).join('')}</select></label>
+    <label>Amount<input id="tx_amount" type="number" step="0.01" value="${escapeHtml(transaction.amount ?? '')}"></label>
+    <label>Bucket<select id="tx_bucket"><option value="">Unassigned</option>${state.buckets.map(item => `<option value="${item.id}" ${item.id === transaction.bucket ? 'selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}</select></label>
+    <label>Card<select id="tx_card"><option value="">None</option>${CARDS.map(card => `<option ${card === transaction.card ? 'selected' : ''}>${escapeHtml(card)}</option>`).join('')}</select></label>
+    <label>Type<select id="tx_type">${typeOptions.map(type => `<option ${type === (transaction.type || 'expense') ? 'selected' : ''}>${escapeHtml(type)}</option>`).join('')}</select></label>
+    <label class="wide">Description<input id="tx_desc" value="${escapeHtml(transaction.desc || '')}"></label>
+    <div class="actions"><button onclick="saveTransaction('${transaction.id || ''}')">${transaction.id ? 'Save' : 'Add'}</button>${transaction.id ? '<button class="secondary" onclick="drill=null;render()">Cancel</button>' : ''}</div>
+  </div>`;
+}
+
+function saveTransaction(id) {
+  const transaction = {
+    id: id || uid('tx'),
+    date: byId('tx_date').value || today(),
+    who: byId('tx_who').value,
+    amount: number(byId('tx_amount').value),
+    bucket: byId('tx_bucket').value,
+    card: byId('tx_card').value,
+    desc: byId('tx_desc').value,
+    type: byId('tx_type').value
+  };
+  const index = state.transactions.findIndex(item => item.id === id);
+  if (index >= 0) state.transactions[index] = { ...state.transactions[index], ...transaction };
+  else state.transactions.push(transaction);
+  drill = null;
+  save();
+}
+
+function deleteTransaction(id) {
+  if (!confirm('Delete this transaction?')) return;
+  state.transactions = state.transactions.filter(transaction => transaction.id !== id);
+  save();
+}
+
+function transactionsTable(transactions, includeActions) {
+  return `<div class="tablewrap"><table><thead><tr><th>Date</th><th>Who</th><th>Bucket</th><th>Description</th><th>Card</th><th>Type</th><th>Amount</th>${includeActions ? '<th>Actions</th>' : ''}</tr></thead><tbody>
+    ${transactions.map(transaction => `<tr>
+      <td>${escapeHtml(transaction.date)}</td>
+      <td>${escapeHtml(transaction.who)}</td>
+      <td>${escapeHtml(bucket(transaction.bucket).name)}</td>
+      <td>${escapeHtml(transaction.desc)}</td>
+      <td>${escapeHtml(transaction.card || '')}</td>
+      <td><span class="pill ${transaction.type === 'refund' || transaction.type === 'income' ? 'good' : ''}">${escapeHtml(transaction.type)}</span></td>
+      <td class="${transactionSignedAmount(transaction) < 0 ? 'pos' : 'neg'}">${money(transactionSignedAmount(transaction))}</td>
+      ${includeActions ? `<td class="actions"><button class="ghost" onclick="drill={tx:'${transaction.id}'};render()">Edit</button><button class="ghost" onclick="deleteTransaction('${transaction.id}')">Delete</button></td>` : ''}
+    </tr>`).join('') || `<tr><td colspan="${includeActions ? 8 : 7}" class="muted">No transactions.</td></tr>`}
+  </tbody></table></div>`;
+}
+
+function renderBuckets() {
+  const rows = state.buckets.filter(item => item.type !== 'bills').map(bucketRowHtml).join('');
+  byId('view').innerHTML = `<div class="panel"><h2>Buckets</h2><p class="muted">Clickable bucket names drill into related transactions. Bills are listed separately because the backup uses bucket type <code>bills</code>. Overage allocations are non-bank funding moves from the Paychecks tab.</p><div class="tablewrap"><table><thead><tr><th>Bucket</th><th>Type</th><th>Monthly</th><th>YTD accrued</th><th>Overage allocated</th><th>Available</th><th>Spent</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function bucketRowHtml(item) {
+  const metrics = bucketMetrics(item);
+  return `<tr><td class="clickable" onclick="drillBucket('${item.id}')">${escapeHtml(item.name)}</td><td>${escapeHtml(item.type)}</td><td>${money(item.monthly)}</td><td>${money(metrics.accrued)}</td><td>${money(metrics.overageAllocated)}</td><td>${money(metrics.available)}</td><td>${money(metrics.spent)}</td><td class="${metrics.balance < 0 ? 'neg' : 'pos'}">${money(metrics.balance)}</td></tr>`;
+}
+
+function renderBills() {
+  const monthTransactions = transactionsForMonth(billFilterMonth);
+  const billRows = state.buckets.filter(item => item.type === 'bills').map(item => {
+    const monthSpent = spendingForBucket(item.id, monthTransactions);
+    const monthlyVariance = number(item.monthly) - monthSpent;
+    const ytd = bucketMetrics(item);
+    return `<tr>
+      <td class="clickable" onclick="drillBucket('${item.id}')">${escapeHtml(item.name)}</td>
+      <td>${money(item.monthly)}</td>
+      <td>${money(monthSpent)}</td>
+      <td class="${monthlyVariance < 0 ? 'neg' : 'pos'}">${money(monthlyVariance)}</td>
+      <td>${money(ytd.accrued)}</td>
+      <td>${money(ytd.overageAllocated)}</td>
+      <td>${money(ytd.spent)}</td>
+      <td class="${ytd.balance < 0 ? 'neg' : 'pos'}">${money(ytd.balance)}</td>
+    </tr>`;
+  }).join('');
+
+  byId('view').innerHTML = `<div class="tabs-note row between"><span>Bills use source bucket type <code>bills</code>. Monthly variance is budgeted minus actual paid/spent; variable utilities are not auto-corrected.</span><select style="max-width:180px" onchange="billFilterMonth=this.value;render()">${monthOptions(billFilterMonth, false)}</select></div><div class="panel"><h2>Bills</h2><div class="tablewrap"><table><thead><tr><th>Bill</th><th>Monthly budget</th><th>Actual selected month</th><th>Monthly variance</th><th>YTD accrued</th><th>Overage allocated</th><th>YTD spent</th><th>YTD balance</th></tr></thead><tbody>${billRows}</tbody></table></div></div>`;
+}
+
+function drillBucket(id) {
+  drill = { bucket: id };
+  activeTab = 'Transactions';
+  render();
+}
+
+function creditCardBalanceFor(card) {
+  const paidThrough = state.cards?.[card]?.paidThrough || '';
+  const transactions = state.transactions
+    .filter(transaction => transaction.card === card && (!paidThrough || transaction.date > paidThrough))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  let running = 0;
+  const lines = transactions.map(transaction => {
+    running += transactionSignedAmount(transaction);
+    return { ...transaction, running };
+  });
+  return { lines, balance: running };
+}
+
+function renderCreditCards() {
+  byId('view').innerHTML = `<div class="grid">${CARDS.map(card => {
+    const balance = creditCardBalanceFor(card);
+    const meta = state.cards[card];
+    return `<div class="panel">
+      <div class="row between"><h2>${escapeHtml(card)}</h2><div><span class="label">Unpaid balance</span> <strong class="${balance.balance > 0 ? 'warn' : 'pos'}">${money(balance.balance)}</strong></div></div>
+      <p class="muted">Last paid: ${escapeHtml(meta.lastPaidAt || 'Never')} · Paid through: ${escapeHtml(meta.paidThrough || 'none')}</p>
+      ${creditCardLinesHtml(balance.lines)}
+      <button onclick="markCardPaid('${card}')">Mark as Paid</button>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function creditCardLinesHtml(lines) {
+  return `<div class="tablewrap"><table><thead><tr><th>Date</th><th>Description</th><th>Bucket</th><th>Adjustment</th><th>Running</th></tr></thead><tbody>
+    ${lines.map(line => `<tr><td>${escapeHtml(line.date)}</td><td>${escapeHtml(line.desc)}</td><td>${escapeHtml(bucket(line.bucket).name)}</td><td class="${transactionSignedAmount(line) < 0 ? 'pos' : 'neg'}">${money(transactionSignedAmount(line))}</td><td>${money(line.running)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No unpaid card activity.</td></tr>'}
+  </tbody></table></div>`;
+}
+
+function markCardPaid(card) {
+  const currentBalance = creditCardBalanceFor(card).balance;
+  const latestTransactionDate = state.transactions.filter(transaction => transaction.card === card).map(transaction => transaction.date).sort().pop() || today();
+  state.cards[card].payments.push({ id: uid('pay'), date: today(), paidThrough: latestTransactionDate, amount: currentBalance });
+  state.cards[card].lastPaidAt = new Date().toISOString();
+  state.cards[card].paidThrough = latestTransactionDate;
+  save();
+}
+
+function renderPaychecks() {
+  const editing = drill?.paycheck ? state.paychecks.find(paycheck => paycheck.id === drill.paycheck) : null;
+  const editingOverage = drill?.overage ? state.overageAllocations.find(allocation => allocation.id === drill.overage) : null;
+  byId('view').innerHTML = `
+    <div class="grid two">
+      <div class="panel"><h2>${editing ? 'Edit' : 'Add'} paycheck</h2>${paycheckFormHtml(editing)}</div>
+      <div class="panel"><h2>${editingOverage ? 'Edit' : 'Log'} paycheck overage allocation</h2>${overageFormHtml(editingOverage)}<p class="muted small">Use this when take-home pay exceeds the planned amount and you want that extra money available in a bucket. It is not a transaction and does not change account reconciliation.</p></div>
+    </div>
+    <div class="panel" style="margin-top:16px"><h2>Overage allocations</h2>${overageAllocationsTable()}</div>
+    <div class="panel" style="margin-top:16px"><h2>Paychecks</h2><div class="tablewrap"><table><thead><tr><th>Date</th><th>Who</th><th>Amount</th><th>Notes</th><th>Actions</th></tr></thead><tbody>${state.paychecks.map(paycheck => `<tr><td>${escapeHtml(paycheck.date)}</td><td>${escapeHtml(paycheck.who)}</td><td>${money(paycheck.amount)}</td><td>${escapeHtml(paycheck.notes)}</td><td class="actions"><button class="ghost" onclick="drill={paycheck:'${paycheck.id}'};render()">Edit</button><button class="ghost" onclick="deletePaycheck('${paycheck.id}')">Delete</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">No paycheck rows were present in the backup. Chris/Sarah monthly pay is preserved in cfg.</td></tr>'}</tbody></table></div><p class="muted">Config pay: Chris ${money(state.cfg.chrisPay)}, Sarah ${money(state.cfg.sarahPay)} · Total overage allocated: ${money(totalOverageAllocated())}</p></div>`;
+}
+
+function paycheckFormHtml(paycheck = {}) {
+  return `<div class="form"><label>Date<input id="p_date" type="date" value="${escapeHtml(paycheck.date || '')}"></label><label>Who<input id="p_who" value="${escapeHtml(paycheck.who || '')}"></label><label>Amount<input id="p_amount" type="number" step="0.01" value="${escapeHtml(paycheck.amount ?? '')}"></label><label class="wide">Notes<input id="p_notes" value="${escapeHtml(paycheck.notes || '')}"></label><div class="actions"><button onclick="savePaycheck('${paycheck.id || ''}')">${paycheck.id ? 'Save' : 'Add'}</button>${paycheck.id ? '<button class="secondary" onclick="drill=null;render()">Cancel</button>' : ''}</div></div>`;
+}
+
+function overageFormHtml(allocation = {}) {
+  return `<div class="form">
+    <label>Date<input id="ov_date" type="date" value="${escapeHtml(allocation.date || today())}"></label>
+    <label>Who<select id="ov_who">${PEOPLE.filter(person => person !== 'imported').map(person => `<option ${person === (allocation.who || 'Both') ? 'selected' : ''}>${person}</option>`).join('')}</select></label>
+    <label>Amount<input id="ov_amount" type="number" step="0.01" value="${escapeHtml(allocation.amount ?? '')}"></label>
+    <label>Bucket<select id="ov_bucket"><option value="">Choose bucket</option>${state.buckets.map(item => `<option value="${item.id}" ${item.id === allocation.bucket ? 'selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}</select></label>
+    <label class="wide">Source paycheck<select id="ov_paycheck"><option value="">None / manual</option>${state.paychecks.map(paycheck => `<option value="${paycheck.id}" ${paycheck.id === allocation.paycheckId ? 'selected' : ''}>${escapeHtml(paycheck.date)} ${escapeHtml(paycheck.who)} ${money(paycheck.amount)}</option>`).join('')}</select></label>
+    <label class="wide">Notes<input id="ov_notes" value="${escapeHtml(allocation.notes || '')}" placeholder="e.g. overtime, bonus, extra net pay"></label>
+    <div class="actions"><button onclick="saveOverageAllocation('${allocation.id || ''}')">${allocation.id ? 'Save' : 'Log allocation'}</button>${allocation.id ? '<button class="secondary" onclick="drill=null;render()">Cancel</button>' : ''}</div>
+  </div>`;
+}
+
+function overageAllocationsTable() {
+  return `<div class="tablewrap"><table><thead><tr><th>Date</th><th>Who</th><th>Bucket</th><th>Amount</th><th>Source</th><th>Notes</th><th>Actions</th></tr></thead><tbody>${(state.overageAllocations || []).map(allocation => {
+    const paycheck = state.paychecks.find(item => item.id === allocation.paycheckId);
+    const source = paycheck ? `${paycheck.date} ${paycheck.who} ${money(paycheck.amount)}` : 'Manual';
+    return `<tr><td>${escapeHtml(allocation.date)}</td><td>${escapeHtml(allocation.who)}</td><td>${escapeHtml(bucket(allocation.bucket).name)}</td><td class="pos">${money(allocation.amount)}</td><td>${escapeHtml(source)}</td><td>${escapeHtml(allocation.notes)}</td><td class="actions"><button class="ghost" onclick="drill={overage:'${allocation.id}'};render()">Edit</button><button class="ghost" onclick="deleteOverageAllocation('${allocation.id}')">Delete</button></td></tr>`;
+  }).join('') || '<tr><td colspan="7" class="muted">No overage allocations logged yet.</td></tr>'}</tbody></table></div>`;
+}
+
+function savePaycheck(id) {
+  const paycheck = { id: id || uid('p'), date: byId('p_date').value, who: byId('p_who').value, amount: number(byId('p_amount').value), notes: byId('p_notes').value };
+  const index = state.paychecks.findIndex(item => item.id === id);
+  if (index >= 0) state.paychecks[index] = { ...state.paychecks[index], ...paycheck };
+  else state.paychecks.push(paycheck);
+  drill = null;
+  save();
+}
+
+function saveOverageAllocation(id) {
+  const allocation = { id: id || uid('ov'), date: byId('ov_date').value || today(), who: byId('ov_who').value, amount: number(byId('ov_amount').value), bucket: byId('ov_bucket').value, paycheckId: byId('ov_paycheck').value, notes: byId('ov_notes').value };
+  if (!allocation.bucket) {
+    alert('Choose a bucket before logging an overage allocation.');
+    return;
+  }
+  const index = state.overageAllocations.findIndex(item => item.id === id);
+  if (index >= 0) state.overageAllocations[index] = { ...state.overageAllocations[index], ...allocation };
+  else state.overageAllocations.push(allocation);
+  drill = null;
+  save();
+}
+
+function deletePaycheck(id) {
+  if (!confirm('Delete this paycheck? Overage allocations linked to it will remain as manual allocations.')) return;
+  state.paychecks = state.paychecks.filter(paycheck => paycheck.id !== id);
+  state.overageAllocations = state.overageAllocations.map(allocation => allocation.paycheckId === id ? { ...allocation, paycheckId: '' } : allocation);
+  save();
+}
+
+function deleteOverageAllocation(id) {
+  if (!confirm('Delete this overage allocation?')) return;
+  state.overageAllocations = state.overageAllocations.filter(allocation => allocation.id !== id);
+  save();
+}
+
+function renderAccounts() {
+  byId('view').innerHTML = `<div class="panel"><h2>Accounts</h2><div class="tablewrap"><table><thead><tr><th>Bank</th><th>Name</th><th>Balance</th><th>Notes</th><th>Status</th></tr></thead><tbody>${state.accounts.map(account => `<tr><td>${escapeHtml(account.bank)}</td><td>${escapeHtml(account.name)}</td><td><input type="number" step="0.01" value="${account.balance}" onchange="updateAccount('${account.id}',this.value)"></td><td>${escapeHtml(account.notes)}</td><td>${number(account.balance) < 0 ? '<span class="pill bad">Overdrawn</span>' : '<span class="pill good">OK</span>'}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No accounts.</td></tr>'}</tbody></table></div></div>`;
+}
+
+function updateAccount(id, value) {
+  const account = state.accounts.find(item => item.id === id);
+  if (!account) return;
+  account.balance = number(value);
+  save();
+}
+
+function renderBackupImport() {
+  byId('view').innerHTML = `<div class="grid two"><div class="panel"><h2>Export</h2><p>Export the full app state, or download transactions as CSV.</p><div class="actions"><button onclick="exportJson()">Export full JSON</button><button class="secondary" onclick="exportCsv()">Export transactions CSV</button></div></div><div class="panel"><h2>Import</h2><p class="muted">Import accepts either the original backup schema or a full app export. Imported data becomes localStorage source of truth.</p><input type="file" accept="application/json,.json" onchange="importFile(this.files[0])"></div></div>`;
+}
+
+function renderSetup() {
+  const schema = {
+    version: state.version,
+    exportedAt: state.exportedAt,
+    appVersion: state.appVersion,
+    cfgKeys: Object.keys(state.cfg || {}),
+    bucketFields: [...new Set(state.buckets.flatMap(item => Object.keys(item)))],
+    transactionFields: [...new Set(state.transactions.flatMap(item => Object.keys(item)))],
+    paycheckCount: state.paychecks.length,
+    overageAllocationCount: (state.overageAllocations || []).length,
+    overageAllocated: totalOverageAllocated(),
+    accountFields: [...new Set(state.accounts.flatMap(item => Object.keys(item)))],
+    cardNames: Object.keys(state.cards || {})
+  };
+
+  byId('view').innerHTML = `<div class="grid two"><div class="panel"><h2>Data status</h2><p>Source: <strong>${escapeHtml(state.source)}</strong></p><p>Loaded at: ${escapeHtml(state.loadedAt)}</p><p>localStorage key: <code>${STORE_KEY}</code></p><label>Current month #<input type="number" min="1" max="12" value="${state.cfg.month}" onchange="state.cfg.month=number(this.value);filterMonth=currentBudgetMonthKey();billFilterMonth=currentBudgetMonthKey();save()"></label><div class="actions" style="margin-top:12px"><button class="secondary" onclick="repairState()">Validate/Repair Arrays</button><button class="danger" onclick="resetLocalStorage()">Reset localStorage</button><button onclick="reloadSeedData()">Reset and Reload Seed Data</button></div></div><div class="panel"><h2>Schema / version info</h2><pre class="schema">${escapeHtml(JSON.stringify(schema, null, 2))}</pre></div></div>`;
+}
+
+function repairState() {
+  const repaired = normalize(state, state.source || 'repair');
+  state = repaired;
+  save();
+}
+
+function resetLocalStorage() {
+  if (!confirm('Clear localStorage for this app?')) return;
+  localStorage.removeItem(STORE_KEY);
+  localStorage.removeItem(LEGACY_STORE_KEY);
+  location.reload();
+}
+
+async function reloadSeedData() {
+  if (!confirm('Replace localStorage with seed data?')) return;
+  localStorage.removeItem(STORE_KEY);
+  localStorage.removeItem(LEGACY_STORE_KEY);
+  try {
+    const response = await fetch(SEED_FILE, { cache: 'no-store' });
+    if (!response.ok) throw new Error(response.statusText);
+    state = normalize(await response.json(), 'seed reload');
+    initializeFilters();
+    persist();
+    render();
+  } catch (error) {
+    state = normalize({}, 'empty');
+    showManualImport(error);
+    render();
+  }
+}
+
+function exportJson() {
+  download(`budget_export_${today()}.json`, JSON.stringify(state, null, 2), 'application/json');
+}
+
+function csvCell(value) {
+  return `"${String(value ?? '').replace(/"/g, '""')}"`;
+}
+
+function exportCsv() {
+  const header = ['id', 'date', 'who', 'amount', 'signedAmount', 'bucket', 'bucketName', 'card', 'description', 'type'];
+  const rows = state.transactions.map(transaction => [transaction.id, transaction.date, transaction.who, transaction.amount, transactionSignedAmount(transaction), transaction.bucket, bucket(transaction.bucket).name, transaction.card, transaction.desc, transaction.type]);
+  download(`transactions_${today()}.csv`, [header, ...rows].map(row => row.map(csvCell).join(',')).join('\n'), 'text/csv');
+}
+
+function download(name, body, type) {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([body], { type }));
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
+function importFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      state = normalize(JSON.parse(reader.result), 'manual import');
+      byId('manualImport').classList.add('hidden');
+      initializeFilters();
+      persist();
+      render();
+    } catch (error) {
+      alert(`Import failed: ${error.message}`);
+    }
+  };
+  reader.onerror = () => alert('Import failed: could not read the selected file.');
+  reader.readAsText(file);
+}
+
+init();
+</script>
+</body>
+</html>
