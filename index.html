@@ -81,9 +81,33 @@
     .pos { color: var(--good); }
     .neg { color: var(--bad); }
     .warn { color: var(--warn); }
+
+    .alert-strip { margin-bottom: 14px; }
+    .alert-strip .alert-head { display: flex; align-items: center; justify-content: space-between; color: #5b6b86; font-weight: 850; letter-spacing: .08em; margin-bottom: 8px; text-transform: uppercase; }
+    .alert-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .hero { position: relative; overflow: hidden; border-radius: 18px; background: linear-gradient(120deg, #111827, #312e81); color: #fff; padding: 28px 34px; box-shadow: var(--shadow); }
+    .hero:after { content: ''; position: absolute; width: 260px; height: 260px; right: 55px; top: -85px; border-radius: 999px; background: rgba(99, 102, 241, .20); box-shadow: 70px 130px 0 rgba(99, 102, 241, .22); }
+    .hero-controls { position: absolute; right: 20px; top: 18px; z-index: 1; display: flex; gap: 8px; }
+    .hero-controls select, .hero-controls button { border-color: rgba(255,255,255,.20); background: rgba(255,255,255,.10); color: #fff; }
+    .hero .label { color: #9fb1d1; }
+    .hero-value { font-size: clamp(36px, 5vw, 52px); font-weight: 900; letter-spacing: -.04em; margin: 2px 0 6px; }
+    .hero-sub { display: flex; flex-wrap: wrap; gap: 22px; color: #dbeafe; }
+    .dash-metrics { grid-template-columns: repeat(6, minmax(160px, 1fr)); margin-top: 18px; }
+    .dash-card { min-height: 120px; border-left: 3px solid var(--line); }
+    .dash-card.good { border-left-color: var(--good); }
+    .dash-card.bad { border-left-color: var(--bad); }
+    .dash-card.warn { border-left-color: #f97316; }
+    .dash-card.info { border-left-color: #4f46e5; }
+    .dash-card .value { border-bottom: 2px dashed #dce5f2; display: inline-block; padding-bottom: 2px; }
+    .accounts-grid { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 12px; }
+    .account-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: #fff; }
+    .account-card .bank { color: #64748b; font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .account-card .name { font-size: 18px; font-weight: 850; margin-bottom: 8px; }
+    .account-card input { border: 0; border-bottom: 2px dashed #dce5f2; border-radius: 0; padding: 0 0 2px; font-size: 28px; font-weight: 900; }
+    .account-meta { color: #53657f; display: flex; gap: 18px; font-size: 12px; margin-top: 8px; }
     .hidden { display: none !important; }
     @media (max-width: 1000px) {
-      .app, .cards, .two, .three, .form { grid-template-columns: 1fr; }
+      .app, .cards, .two, .three, .form, .dash-metrics, .accounts-grid, .alert-grid { grid-template-columns: 1fr; }
       .side { position: static; height: auto; }
       .main { padding: 16px; }
       .form .wide { grid-column: auto; }
@@ -131,6 +155,7 @@ let activeTab = 'Dashboard';
 let filterMonth = '';
 let billFilterMonth = '';
 let drill = null;
+let dashboardAlertsHidden = false;
 
 const byId = id => document.getElementById(id);
 const today = () => new Date().toISOString().slice(0, 10);
@@ -358,31 +383,56 @@ function renderDashboard() {
   const dashboardTransactions = transactionsForMonth(filterMonth);
   const thisMonthTransactions = transactionsForMonth(currentBudgetMonthKey());
   const totalCash = state.accounts.reduce((sum, account) => sum + number(account.balance), 0);
+  const totalPaychecks = state.paychecks.reduce((sum, paycheck) => sum + number(paycheck.amount), 0);
+  const importedIncome = state.transactions.filter(transaction => transaction.type === 'income').reduce((sum, transaction) => sum + Math.abs(number(transaction.amount)), 0);
+  const ytdIncome = totalPaychecks + importedIncome;
+  const ytdExpenses = state.transactions.filter(transaction => transaction.type !== 'income').reduce((sum, transaction) => sum + Math.max(0, transactionSignedAmount(transaction)), 0);
+  const netYtd = ytdIncome - ytdExpenses;
   const spentThisMonth = thisMonthTransactions.reduce((sum, transaction) => sum + transactionSignedAmount(transaction), 0);
+  const expectedTotal = state.buckets.reduce((sum, item) => sum + number(item.monthly), 0) * currentMonthNumber();
   const bucketBalance = state.buckets.reduce((sum, item) => sum + bucketMetrics(item, dashboardTransactions).balance, 0);
   const creditCardBalance = CARDS.reduce((sum, card) => sum + creditCardBalanceFor(card).balance, 0);
+  const adjustedTotal = totalCash + totalOverageAllocated();
+  const reconciliation = adjustedTotal - expectedTotal;
+  const alerts = alertItems(dashboardTransactions);
 
   byId('view').innerHTML = `
-    <div class="tabs-note row between">
-      <span>Inline-edit account balances, emergency fund, and current month number. Bucket health is filterable by month.</span>
-      <select style="max-width:180px" onchange="filterMonth=this.value;render()">${monthOptions(filterMonth, true)}</select>
+    <div class="alert-strip ${dashboardAlertsHidden ? 'hidden' : ''}">
+      <div class="alert-head"><span>Alerts (${alerts.length})</span><button class="secondary" onclick="dashboardAlertsHidden=true;render()">Hide alerts</button></div>
+      <div class="alert-grid">${alerts.map(alert => `<div class="alert ${alert.severity === 'bad' ? 'bad' : ''}">${alert.message}</div>`).join('') || '<div class="muted">No alerts.</div>'}</div>
     </div>
-    <div class="grid cards">
-      <div class="panel metric"><div class="label">Total cash/accounts</div><div class="value">${money(totalCash)}</div></div>
-      <div class="panel metric"><div class="label">Emergency fund</div><input type="number" step="0.01" value="${state.cfg.emergencyFund}" onchange="state.cfg.emergencyFund=number(this.value);save()"></div>
-      <div class="panel metric"><div class="label">Spent ${currentBudgetMonthKey()}</div><div class="value ${spentThisMonth > 0 ? 'neg' : 'pos'}">${money(spentThisMonth)}</div></div>
-      <div class="panel metric"><div class="label">Bucket balance${filterMonth ? ` (${filterMonth})` : ''}</div><div class="value ${bucketBalance < 0 ? 'neg' : 'pos'}">${money(bucketBalance)}</div></div>
-      <div class="panel metric"><div class="label">Credit card balances</div><div class="value ${creditCardBalance > 0 ? 'warn' : ''}">${money(creditCardBalance)}</div></div>
+    ${dashboardAlertsHidden ? '<div class="tabs-note row between"><span>Alerts are hidden.</span><button class="secondary" onclick="dashboardAlertsHidden=false;render()">Show alerts</button></div>' : ''}
+    <section class="hero">
+      <div class="hero-controls"><select onchange="filterMonth=this.value;render()">${monthOptions(filterMonth, true)}</select><button onclick="window.print()">Print</button></div>
+      <div class="label">Total available</div>
+      <div class="hero-value">${money(adjustedTotal)}</div>
+      <div class="hero-sub"><span>↗ Net YTD <strong>${money(netYtd)}</strong></span><span>Expected <strong>${money(expectedTotal)}</strong></span><span>Actual <strong>${money(totalCash)}</strong></span><span>Pace <strong>${money(spentThisMonth * 12)}</strong> projected</span><span class="${reconciliation < 0 ? 'neg' : 'pos'}">${reconciliation < 0 ? 'Off by' : 'Ahead by'} <strong>${money(Math.abs(reconciliation))}</strong></span></div>
+    </section>
+    <div class="grid dash-metrics">
+      ${dashboardMetric('YTD income', money(ytdIncome), totalPaychecks ? `incl. ${money(totalPaychecks)} paychecks` : `incl. ${money(importedIncome)} imported income`, 'good')}
+      ${dashboardMetric('YTD expenses', money(ytdExpenses), `${currentBudgetMonthKey()}: ${money(Math.max(0, spentThisMonth))}`, 'bad')}
+      ${dashboardMetric('Net YTD', money(netYtd), '', netYtd >= 0 ? 'good' : 'bad')}
+      ${dashboardMetric('Emergency fund', money(state.cfg.emergencyFund), 'Click Setup/Dashboard controls to edit', 'warn')}
+      ${dashboardMetric('Credit cards', money(creditCardBalance), 'Unpaid tagged card balance', creditCardBalance > 0 ? 'bad' : 'good')}
+      ${dashboardMetric('Reconciliation', `${reconciliation >= 0 ? '+' : '-'}${money(Math.abs(reconciliation))}`, 'Adjusted total minus expected', Math.abs(reconciliation) < 1 ? 'good' : 'bad')}
+      ${dashboardMetric('Bucket balance', money(bucketBalance), filterMonth ? `Filtered to ${filterMonth}` : 'All transactions', bucketBalance >= 0 ? 'good' : 'bad')}
+      ${dashboardMetric('Paycheck overage', money(totalOverageAllocated()), 'Allocated to buckets, not bank transactions', 'info')}
+      ${dashboardMetric('All accounts', money(totalCash), 'Bank/account balances', 'info')}
+      ${dashboardMetric('Adjusted total', money(adjustedTotal), 'Accounts plus overage allocations', adjustedTotal >= 0 ? 'good' : 'bad')}
     </div>
-    <div class="tabs-note" style="margin-top:16px">Paycheck overage allocated to buckets: <strong>${money(totalOverageAllocated())}</strong>. These are non-bank funding moves, not transactions, so account reconciliation stays tied to real bank balances.</div>
-    <div class="grid two" style="margin-top:16px">
-      <div class="panel"><h2>Alerts</h2><div class="alerts">${alertsHtml(dashboardTransactions)}</div></div>
-      <div class="panel"><h2>Manual controls</h2>${manualControlsHtml()}</div>
-    </div>
+    <div class="panel" style="margin-top:16px"><div class="row between"><h2>Accounts</h2><span class="muted">Click balance to edit</span></div>${accountsOverviewHtml()}</div>
     <div class="grid two" style="margin-top:16px">
       <div class="panel"><h2>Bucket health</h2>${bucketHealthHtml(dashboardTransactions)}</div>
       <div class="panel"><h2>Recent transactions</h2>${transactionsTable([...state.transactions].sort((a,b) => String(b.date).localeCompare(String(a.date))).slice(0, 10), false)}</div>
     </div>`;
+}
+
+function dashboardMetric(label, value, note, tone = '') {
+  return `<div class="panel metric dash-card ${tone}"><div class="label">${escapeHtml(label)}</div><div class="value ${tone === 'bad' ? 'neg' : tone === 'good' ? 'pos' : tone === 'warn' ? 'warn' : ''}">${value}</div>${note ? `<div class="muted small">${escapeHtml(note)}</div>` : ''}</div>`;
+}
+
+function accountsOverviewHtml() {
+  return `<div class="accounts-grid">${state.accounts.map(account => `<div class="account-card"><div class="row between"><div><div class="bank">${escapeHtml(account.bank)}</div><div class="name">${escapeHtml(account.name)}</div></div><span class="pill ${number(account.balance) < 0 ? 'bad' : ''}">${number(account.balance) < 0 ? 'Overdrawn' : 'Account'}</span></div><input aria-label="${escapeHtml(account.name)} balance" type="number" step="0.01" value="${account.balance}" onchange="updateAccount('${account.id}',this.value)"><div class="account-meta"><span>Balance<br><strong>${money(account.balance)}</strong></span>${account.notes ? `<span>Notes<br><strong>${escapeHtml(account.notes)}</strong></span>` : ''}</div></div>`).join('') || '<div class="muted">No accounts.</div>'}</div>`;
 }
 
 function manualControlsHtml() {
@@ -393,18 +443,23 @@ function manualControlsHtml() {
   </div>`;
 }
 
-function alertsHtml(transactions) {
+function alertItems(transactions) {
   const alerts = [];
-  state.accounts.filter(account => number(account.balance) < 0).forEach(account => alerts.push(`<div class="alert bad">Overdrawn account: <strong>${escapeHtml(account.bank)} ${escapeHtml(account.name)}</strong> ${money(account.balance)}</div>`));
+  state.accounts.filter(account => number(account.balance) < 0).forEach(account => alerts.push({ severity: 'bad', message: `⚠ ${escapeHtml(account.bank)} ${escapeHtml(account.name)} is overdrawn by <strong>${money(Math.abs(account.balance))}</strong>` }));
   state.buckets.forEach(item => {
     const metrics = bucketMetrics(item, transactions);
-    if (metrics.balance < 0) alerts.push(`<div class="alert bad">Over-budget bucket: <strong>${escapeHtml(item.name)}</strong> ${money(metrics.balance)}</div>`);
+    if (metrics.balance < 0) alerts.push({ severity: 'bad', message: `⚠ <strong>${escapeHtml(item.name)}</strong> over budget YTD by <strong>${money(Math.abs(metrics.balance))}</strong>` });
   });
   CARDS.forEach(card => {
     const balance = creditCardBalanceFor(card).balance;
-    if (balance > 0) alerts.push(`<div class="alert">Unpaid ${escapeHtml(card)} balance: <strong>${money(balance)}</strong></div>`);
+    if (balance > 0) alerts.push({ severity: 'warn', message: `⚠ <strong>${escapeHtml(card)}</strong> unpaid card balance <strong>${money(balance)}</strong>` });
   });
-  return alerts.join('') || '<div class="muted">No alerts.</div>';
+  return alerts;
+}
+
+function alertsHtml(transactions) {
+  const alerts = alertItems(transactions);
+  return alerts.map(alert => `<div class="alert ${alert.severity === 'bad' ? 'bad' : ''}">${alert.message}</div>`).join('') || '<div class="muted">No alerts.</div>';
 }
 
 function bucketHealthHtml(transactions) {
