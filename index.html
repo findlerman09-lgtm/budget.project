@@ -246,6 +246,26 @@ let _eTxId=null,_ePcId=null,_eBktId=null,_eAcctId=null;
 function dbSave(){localStorage.setItem(LS,JSON.stringify(db));}
 function dbLoad(){try{return JSON.parse(localStorage.getItem(LS));}catch{return null;}}
 function dc(x){return JSON.parse(JSON.stringify(x));}
+/* rolling daily safety snapshots — one per day, keep last 7 */
+function getSnaps(){try{return JSON.parse(localStorage.getItem(LS+'_snaps'))||[];}catch{return[];}}
+function snapshot(){
+  try{
+    const snaps=getSnaps(),d=today();
+    if(snaps[0]?.date===d)return;
+    snaps.unshift({date:d,data:JSON.stringify(db)});
+    while(snaps.length>7)snaps.pop();
+    localStorage.setItem(LS+'_snaps',JSON.stringify(snaps));
+  }catch{}
+}
+function restoreSnap(i){
+  const s=getSnaps()[i];if(!s)return;
+  if(!confirm(`Restore the automatic snapshot from ${fdate(s.date)}?\nAll current data will be replaced.`))return;
+  db=JSON.parse(s.data);dbSave();render();alert('Snapshot restored.');
+}
+function backupOverdueDays(){
+  if(!db.cfg.lastExport)return Infinity;
+  return Math.floor((new Date()-new Date(db.cfg.lastExport+'T00:00:00'))/864e5);
+}
 
 /* ── ICONS ──────────────────────────────────────────────────────── */
 const ICONS={
@@ -315,6 +335,7 @@ const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec
 function cmo(){return+(db.cfg&&db.cfg.month)||new Date().getMonth()+1;}
 function cyr(){return+(db.cfg&&db.cfg.year)||new Date().getFullYear();}
 function bname(id){return(db.buckets||[]).find(b=>b.id===id)?.name||id;}
+function acctName(id){const a=(db.accounts||[]).find(x=>x.id===id);return a?`${a.bank} ${a.name}`:'';}
 function bkt(id){return(db.buckets||[]).find(b=>b.id===id);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 const DEFAULT_CARDS=[{id:'amazon',label:'Amazon'},{id:'chase',label:'Chase'},{id:'lowes',label:"Lowe's"},{id:'macys',label:"Macy's"}];
@@ -347,10 +368,19 @@ function allocTot(bucketId,mo,yr){
   return s;
 }
 function pcExpected(who){return who==='Chris'?(+db.cfg.chrisPay||0):(+db.cfg.sarahPay||0);}
-function pcSurplus(p){const e=pcExpected(p.who);return e>0?Math.max(0,p.amount-e):0;}
+function pcDelta(p){const e=pcExpected(p.who);return e>0?p.amount-e:0;}
+function pcSurplus(p){return Math.max(0,pcDelta(p));}
 function pcAllocated(pcId){return(db.allocations||[]).filter(a=>a.pcId===pcId).reduce((s,a)=>s+a.amount,0);}
 function surplusYtd(yr){const y=yr??cyr();return(db.paychecks||[]).filter(p=>new Date(p.date+'T00:00:00').getFullYear()===y).reduce((s,p)=>s+pcSurplus(p),0);}
-function unallocatedExtra(){const y=cyr();return Math.max(0,surplusYtd(y)-allocTot(null,null,y));}
+function pcUnreconciled(){
+  const y=cyr();let over=0,under=0;
+  for(const p of(db.paychecks||[])){
+    if(new Date(p.date+'T00:00:00').getFullYear()!==y)continue;
+    const left=pcDelta(p)-pcAllocated(p.id);
+    if(left>0.005)over+=left;else if(left<-0.005)under-=left;
+  }
+  return{over,under};
+}
 
 function bstats(b,viewMo){
   if(viewMo==null){
@@ -451,20 +481,24 @@ function pgDash(){
   const mo=cmo(),yr=cyr(),dm=V.dashMonth;
   const badA=(db.accounts||[]).filter(a=>a.balance<0);
   const badB=db.buckets.filter(b=>bstats(b,null).bal<-0.01);
-  const unalloc=unallocatedExtra();
+  const{over:unOver,under:unUnder}=pcUnreconciled();
+  const bkDays=backupOverdueDays(),bkDue=bkDays>7;
   let alerts='';
-  if(badA.length||badB.length||unalloc>1){
+  const nAlerts=badA.length+badB.length+(unOver>1?1:0)+(unUnder>1?1:0)+(bkDue?1:0);
+  if(nAlerts){
     const hidden=V.alertsHidden;
     alerts=`<div class="alerts-wrap">
       <div class="alerts-hdr">
-        <span style="font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Alerts (${badA.length+badB.length+(unalloc>1?1:0)})</span>
+        <span style="font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Alerts (${nAlerts})</span>
         <button class="btn btn-ghost btn-sm" onclick="toggleAlerts()">${hidden?'Show alerts':'Hide alerts'}</button>
       </div>`;
     if(!hidden){
       alerts+='<div class="alerts">';
       for(const a of badA)alerts+=`<div class="alert al-danger">${ico('alertTriangle',15)} <div><strong>${esc(a.bank)} ${esc(a.name)}</strong> is overdrawn: <strong>${$s(a.balance)}</strong></div></div>`;
       for(const b of badB){const s=bstats(b,null);alerts+=`<div class="alert al-warn">${ico('alertTriangle',15)} <div><strong>${esc(b.name)}</strong> over budget YTD by <strong>${$f(Math.abs(s.bal))}</strong></div></div>`;}
-      if(unalloc>1)alerts+=`<div class="alert al-warn" onclick="go('paychecks')" style="cursor:pointer">${ico('alertTriangle',15)} <div><strong>${$f(unalloc)}</strong> of extra paycheck money isn't in any bucket yet — click to allocate it</div></div>`;
+      if(unOver>1)alerts+=`<div class="alert al-warn" onclick="go('paychecks')" style="cursor:pointer">${ico('alertTriangle',15)} <div><strong>${$f(unOver)}</strong> of extra paycheck money isn't in any bucket yet — click to allocate it</div></div>`;
+      if(unUnder>1)alerts+=`<div class="alert al-warn" onclick="go('paychecks')" style="cursor:pointer">${ico('alertTriangle',15)} <div>Paychecks came in <strong>${$f(unUnder)}</strong> short and buckets haven't been reduced to match — click to reconcile</div></div>`;
+      if(bkDue)alerts+=`<div class="alert al-warn" onclick="go('backup')" style="cursor:pointer">${ico('alertTriangle',15)} <div>Backup overdue — ${db.cfg.lastExport?`last export was <strong>${bkDays} days ago</strong>`:'<strong>never backed up</strong>'}. Click to export (data only lives in this browser)</div></div>`;
       alerts+='</div>';
     }
     alerts+='</div>';
@@ -772,7 +806,7 @@ function pgDrill(id){
   const als=(db.allocations||[]).filter(a=>a.bucket===id&&new Date(a.date+'T00:00:00').getFullYear()===yr).sort((a,b)=>b.date.localeCompare(a.date));
   const alRows=als.map(a=>`<tr>
     <td style="white-space:nowrap">${fdate(a.date)}</td>
-    <td style="text-align:right" class="c-green">+${$f(a.amount)}</td>
+    <td style="text-align:right" class="${a.amount<0?'c-red':'c-green'}">${$pm(a.amount)}</td>
     <td class="c-muted">${esc(a.notes||'')}</td>
     <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditAlloc('${a.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delAlloc('${a.id}')">Del</button></td>
   </tr>`).join('');
@@ -780,7 +814,7 @@ function pgDrill(id){
   <div class="pg-hdr"><h1>${esc(b.name)}</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openAlloc(null,'${id}')">+ Add Funds</button><button class="btn btn-primary" onclick="openAddTx('${id}')">+ Add to Bucket</button></span></div>
   <div class="sum-row">
     <div class="sum-tile sum-tile-blue"><div class="sum-lbl">Monthly Budget</div><div class="sum-val">${$f(b.monthly)}</div></div>
-    <div class="sum-tile sum-tile-green"><div class="sum-lbl">YTD Accrued</div><div class="sum-val">${$f(s.acc)}</div>${extra>0.005?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">incl. ${$f(extra)} extra funded</div>`:''}</div>
+    <div class="sum-tile sum-tile-green"><div class="sum-lbl">YTD Accrued</div><div class="sum-val">${$f(s.acc)}</div>${Math.abs(extra)>0.005?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">incl. ${$pm(extra)} extra funded</div>`:''}</div>
     <div class="sum-tile sum-tile-red"><div class="sum-lbl">YTD Spent</div><div class="sum-val c-red">${$f(s.sp)}</div></div>
     <div class="sum-tile ${s.bal<0?'sum-tile-red':'sum-tile-green'}"><div class="sum-lbl">YTD Balance</div><div class="sum-val ${s.bal<0?'c-red':'c-green'}">${$s(s.bal)}</div></div>
   </div>
@@ -851,6 +885,15 @@ function biweeklyExpected(who,rate){
   const days=(today-sorted[0])/(864e5);
   return(Math.floor(days/14)+1)*rate;
 }
+function pcDueDate(who){
+  const yr=cyr();
+  const dates=(db.paychecks||[]).filter(p=>p.who===who&&new Date(p.date+'T00:00:00').getFullYear()===yr).map(p=>new Date(p.date+'T00:00:00')).sort((a,b)=>a-b);
+  if(dates.length<2)return null;
+  let td=0;for(let i=1;i<dates.length;i++)td+=(dates[i]-dates[i-1])/864e5;
+  const avg=Math.round(td/(dates.length-1));
+  const nxt=new Date(dates[dates.length-1].getTime()+avg*864e5);
+  return nxt<=new Date()?nxt:null;
+}
 function pgPay(){
   const yr=cyr(),pcs=db.paychecks||[];
   const yrPcs=pcs.filter(p=>new Date(p.date+'T00:00:00').getFullYear()===yr);
@@ -868,23 +911,36 @@ function pgPay(){
     return`every ~${avg} days · next est. ${nxt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
   }
   const cSched=schedNote('Chris'),sSched=schedNote('Sarah');
-  const exYtd=surplusYtd(yr),unal=unallocatedExtra();
+  const exYtd=surplusYtd(yr),unrec=pcUnreconciled();
+  const dueH=['Chris','Sarah'].map(w=>{
+    const d=pcDueDate(w);
+    if(!d)return'';
+    const iso=d.toISOString().slice(0,10);
+    return`<div class="alert al-warn" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${ico('banknote',15)}
+      <div style="flex:1"><strong>${w}'s paycheck</strong> was expected around <strong>${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</strong> and hasn't been logged</div>
+      <button class="btn btn-primary btn-sm" onclick="openAddPcFor('${w}','${iso}')">Log it</button>
+    </div>`;
+  }).join('');
   const rows=[...pcs].sort((a,b)=>b.date.localeCompare(a.date)).map(p=>{
-    const ex=pcSurplus(p),left=ex-pcAllocated(p.id);
+    const dv=pcDelta(p),left=dv-pcAllocated(p.id);
+    let note='';
+    if(dv>0.005)note=`<div style="font-size:.68rem;font-weight:600" class="${left>0.005?'c-warn':'c-muted'}">+${$f(dv)} extra${left>0.005?' · '+$f(left)+' not in buckets':' · ✓ in buckets'}</div>`;
+    else if(dv<-0.005)note=`<div style="font-size:.68rem;font-weight:600" class="${left<-0.005?'c-warn':'c-muted'}">−${$f(-dv)} short${left<-0.005?' · '+$f(-left)+' still in buckets':' · ✓ buckets reduced'}</div>`;
     return`<tr>
-    <td style="white-space:nowrap">${fdate(p.date)}</td><td>${esc(p.who)}</td>
-    <td style="text-align:right" class="c-green">${$f(p.amount)}${ex>0.005?`<div style="font-size:.68rem;font-weight:600" class="${left>0.005?'c-warn':'c-muted'}">+${$f(ex)} extra${left>0.005?' · '+$f(left)+' not in buckets':' · ✓ in buckets'}</div>`:''}</td>
+    <td style="white-space:nowrap">${fdate(p.date)}</td><td>${esc(p.who)}${p.acctId?`<div class="c-muted" style="font-size:.66rem">→ ${esc(acctName(p.acctId))}</div>`:''}</td>
+    <td style="text-align:right" class="c-green">${$f(p.amount)}${note}</td>
     <td class="c-muted">${esc(p.notes||'')}</td>
-    <td style="white-space:nowrap">${left>0.005?`<button class="btn btn-success btn-xs" onclick="openAlloc('${p.id}')">Allocate</button> `:''}<button class="btn btn-ghost btn-xs" onclick="openEditPc('${p.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delPc('${p.id}')">Del</button></td>
+    <td style="white-space:nowrap">${Math.abs(left)>0.005&&Math.abs(dv)>0.005?`<button class="btn btn-success btn-xs" onclick="openAlloc('${p.id}')">${left>0?'Allocate':'Reconcile'}</button> `:''}<button class="btn btn-ghost btn-xs" onclick="openEditPc('${p.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delPc('${p.id}')">Del</button></td>
   </tr>`;}).join('');
   const alRows=[...(db.allocations||[])].sort((a,b)=>b.date.localeCompare(a.date)).map(a=>`<tr>
     <td style="white-space:nowrap">${fdate(a.date)}</td>
     <td>${esc(bname(a.bucket))}</td>
-    <td style="text-align:right" class="c-green">+${$f(a.amount)}</td>
+    <td style="text-align:right" class="${a.amount<0?'c-red':'c-green'}">${$pm(a.amount)}</td>
     <td class="c-muted">${esc(a.notes||'')}</td>
     <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditAlloc('${a.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delAlloc('${a.id}')">Del</button></td>
   </tr>`).join('');
   return`<div class="pg-hdr"><h1>Paychecks</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openAlloc()">+ Add Funds to Bucket</button><button class="btn btn-primary" onclick="openAddPc()">+ Log Paycheck</button></span></div>
+  ${dueH}
   <div class="sum-row">
     <div class="sum-tile"><div class="sum-lbl">Chris Expected YTD</div><div class="sum-val">${cE!==null?$f(cE):'<span class="c-muted" style="font-size:.9rem">log first check</span>'}</div>${cSched?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">${cSched}</div>`:''}</div>
     <div class="sum-tile"><div class="sum-lbl">Chris Received</div><div class="sum-val c-green">${$f(cA)}</div>${cE!==null?`<div class="pbar" style="margin-top:6px"><div class="pb-${cA>=cE?'ok':'warn'}" style="width:${Math.min(100,Math.round(cA/cE*100))}%"></div></div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${Math.min(100,Math.round(cA/cE*100))}% · ${cA>=cE?'✓ on track':'⚠ '+$f(cE-cA)+' behind'}</div>`:''}</div>
@@ -892,7 +948,7 @@ function pgPay(){
     <div class="sum-tile"><div class="sum-lbl">Sarah Received</div><div class="sum-val c-green">${$f(sA)}</div>${sE!==null?`<div class="pbar" style="margin-top:6px"><div class="pb-${sA>=sE?'ok':'warn'}" style="width:${Math.min(100,Math.round(sA/sE*100))}%"></div></div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${Math.min(100,Math.round(sA/sE*100))}% · ${sA>=sE?'✓ on track':'⚠ '+$f(sE-sA)+' behind'}</div>`:''}</div>
     <div class="sum-tile"><div class="sum-lbl">Total Received</div><div class="sum-val c-green">${$f(cA+sA)}</div></div>
     <div class="sum-tile"><div class="sum-lbl">Extra Received</div><div class="sum-val ${exYtd>0.005?'c-green':''}">${$f(exYtd)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">over expected pay YTD</div></div>
-    <div class="sum-tile"><div class="sum-lbl">Unallocated Extra</div><div class="sum-val ${unal>1?'c-warn':'c-green'}">${$f(unal)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${unal>1?'not yet in buckets':'✓ all extra in buckets'}</div></div>
+    <div class="sum-tile"><div class="sum-lbl">Unreconciled</div><div class="sum-val ${unrec.over>1||unrec.under>1?'c-warn':'c-green'}">${$f(unrec.over+unrec.under)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${unrec.over>1||unrec.under>1?[unrec.over>1?$f(unrec.over)+' extra not in buckets':'',unrec.under>1?$f(unrec.under)+' short not pulled back':''].filter(Boolean).join(' · '):'✓ buckets match paychecks'}</div></div>
   </div>
   <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Paycheck Log</h2></div>
     <div class="tbl-wrap"><table class="dt">
@@ -1005,6 +1061,10 @@ function pgBackup(){
       <button class="btn btn-ghost" onclick="document.getElementById('imp-file').click()">⬆ Choose JSON File</button>
     </div>
   </div>
+  <div class="card"><div class="card-hdr"><h2>Automatic Snapshots</h2></div>
+    <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">The app saves one snapshot per day (last 7 kept) the first time it opens, so a bad edit or accidental clear can be undone. Snapshots live in this browser only — they do <strong>not</strong> survive clearing browser data. Export a JSON backup regularly for real safety.</p>
+    ${getSnaps().map((s,i)=>`<div class="setup-brow"><span style="flex:1">${fdate(s.date)}</span><span class="c-muted" style="font-size:.78rem;margin-right:8px">${(s.data.length/1024).toFixed(1)} KB</span><button class="btn btn-ghost btn-xs" onclick="restoreSnap(${i})">Restore</button></div>`).join('')||'<div class="empty-state">No snapshots yet — one is taken automatically each day the app opens</div>'}
+  </div>
   <div class="card"><div class="card-hdr"><h2>Data Summary</h2></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;font-size:.84rem">
       <div><div style="font-size:1.4rem;font-weight:700">${db.transactions.length}</div><div class="c-muted">Transactions</div></div>
@@ -1067,7 +1127,28 @@ function pgSetup(){
     ${bktH}</div>
   <div class="card"><div class="card-hdr"><h2>${ico('creditCard',14)} Credit Cards</h2><button class="btn btn-primary btn-sm" onclick="openAddCard()">+ Add Card</button></div>
     ${getCards().map(c=>`<div class="setup-brow"><span style="flex:1">${esc(c.label)}</span><span class="c-muted" style="font-size:.82rem;margin-right:8px">${esc(c.id)}</span><button class="btn btn-danger btn-xs" onclick="delCard('${c.id}')">Remove</button></div>`).join('')}
+  </div>
+  <div class="card"><div class="card-hdr"><h2>${ico('trendingUp',14)} Year-End Rollover</h2></div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:6px">The app is currently tracking <strong>${cyr()}</strong>. When the year ends, roll into ${cyr()+1}:</p>
+    <ul style="font-size:.82rem;color:var(--muted);margin:0 0 12px 18px;line-height:1.6">
+      <li>Each bucket's ${cyr()} ending balance carries into ${cyr()+1} as a Jan 1 allocation (positive or negative)</li>
+      <li>Each account's Jan 1 opening balance is set to its current balance</li>
+      <li>All ${cyr()} history is kept — a JSON backup downloads automatically first</li>
+    </ul>
+    <button class="btn btn-primary" onclick="startNewYear()">Start ${cyr()+1}</button>
   </div>`;
+}
+function startNewYear(){
+  const yr=cyr(),ny=yr+1;
+  const carry=db.buckets.map(b=>({b,bal:bstats(b,null).bal})).filter(x=>Math.abs(x.bal)>0.005);
+  if(!confirm(`Start ${ny}?\n\n• ${carry.length} bucket balance${carry.length===1?'':'s'} will carry over as Jan 1 allocations\n• Account opening balances will be set to current balances\n• The app switches to ${ny} (all ${yr} data is kept)\n\nA backup file will download first. Continue?`))return;
+  exportJSON();
+  if(!db.allocations)db.allocations=[];
+  for(const{b,bal}of carry)db.allocations.push({id:uid(),date:`${ny}-01-01`,bucket:b.id,amount:Math.round(bal*100)/100,pcId:null,notes:`Carried over from ${yr}`});
+  for(const a of(db.accounts||[]))a.openingBalance=a.balance;
+  db.cfg.year=ny;db.cfg.month=1;
+  dbSave();render();
+  alert(`Welcome to ${ny}! Bucket balances carried over and opening balances reset.`);
 }
 
 /* ── MODAL ──────────────────────────────────────────────────────── */
@@ -1141,10 +1222,13 @@ function saveTx(){
 function delTx(id){if(!confirm('Delete this transaction?'))return;db.transactions=db.transactions.filter(t=>t.id!==id);dbSave();pageR();}
 
 /* ── PAYCHECK FORM ──────────────────────────────────────────────── */
-function openAddPc(){_ePcId=null;showPcModal({date:today(),who:'Chris',amount:db.cfg.chrisPay,notes:''},'Log Paycheck');}
+function defAcct(who){return db.cfg[who==='Chris'?'chrisAcct':'sarahAcct']||'';}
+function openAddPc(){_ePcId=null;showPcModal({date:today(),who:'Chris',amount:db.cfg.chrisPay,acctId:defAcct('Chris'),notes:''},'Log Paycheck');}
+function openAddPcFor(who,date){_ePcId=null;showPcModal({date,who,amount:pcExpected(who)||'',acctId:defAcct(who),notes:''},'Log Paycheck');}
 function openEditPc(id){_ePcId=id;const p=(db.paychecks||[]).find(x=>x.id===id);if(p)showPcModal({...p},'Edit Paycheck');}
 function showPcModal(p,title){
   const wO=['Chris','Sarah'].map(w=>`<option value="${w}"${p.who===w?' selected':''}>${w}</option>`).join('');
+  const aO=`<option value="">— none (update balance yourself) —</option>`+(db.accounts||[]).map(a=>`<option value="${a.id}"${p.acctId===a.id?' selected':''}>${esc(a.bank)} ${esc(a.name)}</option>`).join('');
   openModal(`<div class="mhdr"><h3>${title}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
     <div class="mbody">
       <div class="frow">
@@ -1152,12 +1236,17 @@ function showPcModal(p,title){
         <div class="fg"><label>Who</label><select id="pf-who" onchange="fillPay(this.value)">${wO}</select></div>
       </div>
       <div class="fg"><label>Amount</label><input type="number" id="pf-amt" step="0.01" value="${p.amount}" oninput="pcHint()"/><div id="pf-hint" style="font-size:.72rem;margin-top:3px"></div></div>
+      <div class="fg"><label>Deposit To</label><select id="pf-acct">${aO}</select><div class="c-muted" style="font-size:.72rem;margin-top:3px">The account balance is bumped automatically when a deposit account is chosen</div></div>
       <div class="fg"><label>Notes</label><input type="text" id="pf-notes" value="${esc(p.notes||'')}"/></div>
     </div>
     <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePc()">Save</button></div>`);
   pcHint();
 }
-function fillPay(who){const el=document.getElementById('pf-amt');if(el)el.value=who==='Chris'?db.cfg.chrisPay:db.cfg.sarahPay;pcHint();}
+function fillPay(who){
+  const el=document.getElementById('pf-amt');if(el)el.value=who==='Chris'?db.cfg.chrisPay:db.cfg.sarahPay;
+  const ael=document.getElementById('pf-acct');if(ael)ael.value=defAcct(who);
+  pcHint();
+}
 function pcHint(){
   const el=document.getElementById('pf-hint');if(!el)return;
   const who=document.getElementById('pf-who').value,amt=parseFloat(document.getElementById('pf-amt').value)||0,exp=pcExpected(who);
@@ -1165,39 +1254,55 @@ function pcHint(){
   const d=amt-exp;
   el.innerHTML=Math.abs(d)<0.005?`<span class="c-muted">Matches expected ${$f(exp)}</span>`
     :d>0?`<span class="c-green">${$f(d)} over expected ${$f(exp)} — you'll be prompted to add the extra to buckets</span>`
-    :`<span class="c-warn">${$f(-d)} under expected ${$f(exp)}</span>`;
+    :`<span class="c-warn">${$f(-d)} under expected ${$f(exp)} — you'll be prompted to reduce buckets to match</span>`;
+}
+function pcAcctAdjust(acctId,delta){
+  if(!acctId)return;
+  const a=(db.accounts||[]).find(x=>x.id===acctId);
+  if(a)a.balance=Math.round((a.balance+delta)*100)/100;
 }
 function savePc(){
   const p={id:_ePcId||uid(),date:document.getElementById('pf-date').value,
     who:document.getElementById('pf-who').value,
     amount:parseFloat(document.getElementById('pf-amt').value)||0,
+    acctId:document.getElementById('pf-acct').value||'',
     notes:document.getElementById('pf-notes').value.trim()};
   if(!p.date||p.amount<=0){alert('Please enter date and amount.');return;}
   if(!db.paychecks)db.paychecks=[];
+  const prev=_ePcId?db.paychecks.find(x=>x.id===_ePcId):null;
+  if(prev)pcAcctAdjust(prev.acctId,-prev.amount);
+  pcAcctAdjust(p.acctId,p.amount);
+  db.cfg[p.who==='Chris'?'chrisAcct':'sarahAcct']=p.acctId;
   if(_ePcId){const i=db.paychecks.findIndex(x=>x.id===_ePcId);if(i>=0)db.paychecks[i]=p;}else db.paychecks.push(p);
   dbSave();closeModal();pageR();
-  if(pcSurplus(p)-pcAllocated(p.id)>0.005)openAlloc(p.id);
+  if(Math.abs(pcDelta(p)-pcAllocated(p.id))>0.005)openAlloc(p.id);
 }
-function delPc(id){if(!confirm('Delete this paycheck?'))return;db.paychecks=(db.paychecks||[]).filter(p=>p.id!==id);dbSave();pageR();}
+function delPc(id){
+  const p=(db.paychecks||[]).find(x=>x.id===id);
+  if(!confirm(`Delete this paycheck?${p&&p.acctId?`\n${acctName(p.acctId)}'s balance will be reduced by ${$f(p.amount)}.`:''}`))return;
+  if(p)pcAcctAdjust(p.acctId,-p.amount);
+  db.paychecks=(db.paychecks||[]).filter(x=>x.id!==id);dbSave();pageR();
+}
 
 /* ── BUCKET ALLOCATIONS (extra paycheck money → buckets) ────────── */
 let _eAllocId=null;
 function openAlloc(pcId,bucketId){
   _eAllocId=null;
   const p=pcId?(db.paychecks||[]).find(x=>x.id===pcId):null;
-  const left=p?Math.max(0,pcSurplus(p)-pcAllocated(p.id)):0;
+  const left=p?pcDelta(p)-pcAllocated(p.id):0;
   showAllocModal({date:p?p.date:today(),pcId:p?p.id:'',bucket:bucketId||db.buckets[0]?.id||'',
-    amount:left>0.005?left.toFixed(2):'',notes:p?`Extra from ${p.who} paycheck ${fdate(p.date)}`:''},
-    p?`Allocate Extra Pay — ${$f(left)} left`:'Add Funds to Bucket');
+    amount:Math.abs(left)>0.005?left.toFixed(2):'',
+    notes:p?`${left<0?'Shortfall':'Extra'} from ${p.who} paycheck ${fdate(p.date)}`:''},
+    p?(left<0?`Reduce Buckets — ${$f(-left)} short`:`Allocate Extra Pay — ${$f(left)} left`):'Add Funds to Bucket');
 }
 function openEditAlloc(id){_eAllocId=id;const a=(db.allocations||[]).find(x=>x.id===id);if(a)showAllocModal({...a},'Edit Allocation');}
 function showAllocModal(a,title){
   openModal(`<div class="mhdr"><h3>${esc(title)}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
     <div class="mbody">
-      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Adds money to a bucket's budget balance without counting as new income, so account reconciliation stays balanced.${a.pcId?' To split across buckets, save a partial amount — the form reopens with the remainder.':''}</p>
+      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Positive amounts add money to a bucket's budget balance; negative amounts pull money back (e.g. a short paycheck). Doesn't count as income, so account reconciliation stays balanced.${a.pcId?' To split across buckets, save a partial amount — the form reopens with the remainder.':''}</p>
       <div class="frow">
         <div class="fg"><label>Date</label><input type="date" id="al-date" value="${a.date}"/></div>
-        <div class="fg"><label>Amount</label><input type="number" id="al-amt" step="0.01" min="0" placeholder="0.00" value="${a.amount}"/></div>
+        <div class="fg"><label>Amount</label><input type="number" id="al-amt" step="0.01" placeholder="0.00" value="${a.amount}"/></div>
       </div>
       <div class="fg"><label>Bucket</label><select id="al-bkt">${bktGroups(a.bucket)}</select></div>
       <div class="fg"><label>Notes</label><input type="text" id="al-notes" value="${esc(a.notes||'')}"/></div>
@@ -1211,15 +1316,16 @@ function saveAlloc(){
     bucket:document.getElementById('al-bkt').value,
     pcId:document.getElementById('al-pc').value||null,
     notes:document.getElementById('al-notes').value.trim()};
-  if(!a.date||a.amount<=0||!a.bucket){alert('Please enter date, amount, and bucket.');return;}
+  if(!a.date||!a.amount||!a.bucket){alert('Please enter date, a non-zero amount, and bucket.');return;}
   if(!db.allocations)db.allocations=[];
   const isNew=!_eAllocId;
+  const p=a.pcId?(db.paychecks||[]).find(x=>x.id===a.pcId):null;
+  const leftBefore=p?pcDelta(p)-pcAllocated(p.id):0;
   if(_eAllocId){const i=db.allocations.findIndex(x=>x.id===_eAllocId);if(i>=0)db.allocations[i]=a;}else db.allocations.push(a);
   dbSave();closeModal();pageR();
-  if(isNew&&a.pcId){
-    const p=(db.paychecks||[]).find(x=>x.id===a.pcId);
-    const left=p?pcSurplus(p)-pcAllocated(p.id):0;
-    if(left>0.005)openAlloc(a.pcId);
+  if(isNew&&p){
+    const left=leftBefore-a.amount;
+    if(Math.abs(left)>0.005&&Math.sign(left)===Math.sign(leftBefore))openAlloc(a.pcId);
   }
 }
 function delAlloc(id){if(!confirm('Remove this bucket allocation?'))return;db.allocations=(db.allocations||[]).filter(a=>a.id!==id);dbSave();pageR();}
@@ -1517,6 +1623,7 @@ function init(){
     if(!db.allocations)db.allocations=[];
     dbSave();
   }
+  snapshot();
   render();
   document.addEventListener('keydown',e=>{
     if(e.target.matches('input,select,textarea,button'))return;
