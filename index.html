@@ -283,6 +283,7 @@ const ICONS={
   arrowLeft:`<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/>`,
   check:`<polyline points="20,6 9,17 4,12"/>`,
   alertTriangle:`<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+  lock:`<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`,
 };
 function ico(name,sz=16){
   return`<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0">${ICONS[name]||''}</svg>`;
@@ -442,11 +443,11 @@ function navR(){
   ];
   document.getElementById('navbar').innerHTML=`<div class="nav-inner"><span class="nav-brand">${ico('trendingUp',15)} BudgetLock</span>${
     tabs.map(([id,lbl,icon])=>`<button class="ntab${V.tab===id?' on':''}" onclick="go('${id}')">${ico(icon,13)} ${lbl}</button>`).join('')
-  }</div>`;
+  }${db.cfg&&db.cfg.passHash?`<button class="ntab" style="margin-left:auto" onclick="lockApp()" title="Lock the app">${ico('lock',13)} Lock</button>`:''}</div>`;
   const bn=document.getElementById('bottom-nav');
   if(bn)bn.innerHTML=`<div class="bnav-inner">${
     tabs.map(([id,,icon,short])=>`<button class="btab${V.tab===id?' on':''}" onclick="go('${id}')"><span class="btab-ico">${ico(icon,20)}</span><span>${short}</span></button>`).join('')
-  }</div>`;
+  }${db.cfg&&db.cfg.passHash?`<button class="btab" onclick="lockApp()"><span class="btab-ico">${ico('lock',20)}</span><span>Lock</span></button>`:''}</div>`;
 }
 function go(tab,drill){V.tab=tab;V.drillId=drill??null;render();}
 function setDashPanel(p){V.dashPanel=p;pageR();}
@@ -1128,6 +1129,23 @@ function pgSetup(){
   <div class="card"><div class="card-hdr"><h2>${ico('creditCard',14)} Credit Cards</h2><button class="btn btn-primary btn-sm" onclick="openAddCard()">+ Add Card</button></div>
     ${getCards().map(c=>`<div class="setup-brow"><span style="flex:1">${esc(c.label)}</span><span class="c-muted" style="font-size:.82rem;margin-right:8px">${esc(c.id)}</span><button class="btn btn-danger btn-xs" onclick="delCard('${c.id}')">Remove</button></div>`).join('')}
   </div>
+  <div class="card"><div class="card-hdr"><h2>${ico('lock',14)} App Lock</h2></div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Asks for a password whenever the app opens (and adds a Lock button to the nav). <strong>Casual privacy only</strong> — it keeps wandering eyes out, but the data on this device is not encrypted, so don't reuse a real banking password. Removing the lock or resetting the app clears it.</p>
+    ${db.cfg.passHash?`
+    <div class="frow3">
+      <div class="fg"><label>Current Password</label><input type="password" id="lk-cur" autocomplete="off"/></div>
+      <div class="fg"><label>New Password</label><input type="password" id="lk-new" autocomplete="off"/></div>
+      <div class="fg"><label>Hint (optional)</label><input type="text" id="lk-hint" value="${esc(db.cfg.passHint||'')}" placeholder="shown after a wrong guess"/></div>
+    </div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn btn-primary" onclick="changePass()">Change Password</button><button class="btn btn-danger" onclick="removePass()">Remove Lock</button></div>`
+    :`
+    <div class="frow3">
+      <div class="fg"><label>Password</label><input type="password" id="lk-new" autocomplete="off"/></div>
+      <div class="fg"><label>Confirm</label><input type="password" id="lk-new2" autocomplete="off"/></div>
+      <div class="fg"><label>Hint (optional)</label><input type="text" id="lk-hint" placeholder="shown after a wrong guess"/></div>
+    </div>
+    <button class="btn btn-primary" onclick="setPass()">Enable Lock</button>`}
+  </div>
   <div class="card"><div class="card-hdr"><h2>${ico('trendingUp',14)} Year-End Rollover</h2></div>
     <p style="font-size:.82rem;color:var(--muted);margin-bottom:6px">The app is currently tracking <strong>${cyr()}</strong>. When the year ends, roll into ${cyr()+1}:</p>
     <ul style="font-size:.82rem;color:var(--muted);margin:0 0 12px 18px;line-height:1.6">
@@ -1602,6 +1620,58 @@ function initSwipeRows(){
   });
 }
 
+/* ── APP LOCK (casual privacy — data itself is not encrypted) ───── */
+function pHash(s){let h=5381;for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;return h.toString(36);}
+function isLocked(){return!!(db.cfg&&db.cfg.passHash)&&sessionStorage.getItem('bl_unlock')!==db.cfg.passHash;}
+function renderLock(){
+  document.getElementById('navbar').innerHTML=`<div class="nav-inner"><span class="nav-brand">${ico('trendingUp',15)} BudgetLock</span></div>`;
+  const bn=document.getElementById('bottom-nav');if(bn)bn.innerHTML='';
+  document.getElementById('app').innerHTML=`<div style="max-width:340px;margin:12vh auto 0">
+    <div class="card" style="text-align:center;padding:28px 24px">
+      <div style="margin-bottom:8px;color:var(--primary)">${ico('lock',34)}</div>
+      <h2 style="margin-bottom:4px">BudgetLock</h2>
+      <p class="c-muted" style="font-size:.84rem;margin-bottom:16px">Enter the password to open the budget</p>
+      <input type="password" id="lk-pass" placeholder="Password" autocomplete="off" style="text-align:center" onkeydown="if(event.key==='Enter')tryUnlock()"/>
+      <div id="lk-err" class="c-red" style="font-size:.78rem;margin-top:8px;min-height:17px"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="tryUnlock()">Unlock</button>
+    </div>
+    <p class="c-muted" style="text-align:center;font-size:.72rem;margin-top:12px">Casual privacy only — the data on this device is not encrypted.</p>
+  </div>`;
+  setTimeout(()=>document.getElementById('lk-pass')?.focus(),80);
+}
+function tryUnlock(){
+  const inp=document.getElementById('lk-pass');
+  if(pHash(inp.value)===db.cfg.passHash){sessionStorage.setItem('bl_unlock',db.cfg.passHash);render();return;}
+  const e=document.getElementById('lk-err');
+  e.textContent='Wrong password'+(db.cfg.passHint?' — hint: '+db.cfg.passHint:'');
+  inp.value='';inp.focus();
+}
+function lockApp(){sessionStorage.removeItem('bl_unlock');renderLock();}
+function setPass(){
+  const p=document.getElementById('lk-new').value,p2=document.getElementById('lk-new2').value;
+  if(!p){alert('Enter a password.');return;}
+  if(p!==p2){alert('Passwords do not match.');return;}
+  db.cfg.passHash=pHash(p);db.cfg.passHint=document.getElementById('lk-hint').value.trim();
+  sessionStorage.setItem('bl_unlock',db.cfg.passHash);
+  dbSave();render();
+  alert("App lock enabled — you'll be asked for the password next time the app opens.");
+}
+function changePass(){
+  if(pHash(document.getElementById('lk-cur').value)!==db.cfg.passHash){alert('Current password is wrong.');return;}
+  const p=document.getElementById('lk-new').value;
+  if(!p){alert('Enter a new password.');return;}
+  db.cfg.passHash=pHash(p);db.cfg.passHint=document.getElementById('lk-hint').value.trim();
+  sessionStorage.setItem('bl_unlock',db.cfg.passHash);
+  dbSave();render();alert('Password changed.');
+}
+function removePass(){
+  if(pHash(document.getElementById('lk-cur').value)!==db.cfg.passHash){alert('Current password is wrong.');return;}
+  if(!confirm('Remove the app lock?'))return;
+  delete db.cfg.passHash;delete db.cfg.passHint;
+  sessionStorage.removeItem('bl_unlock');
+  dbSave();render();
+}
+
 /* ── INIT ───────────────────────────────────────────────────────── */
 function init(){
   showSkeleton();
@@ -1624,8 +1694,9 @@ function init(){
     dbSave();
   }
   snapshot();
-  render();
+  if(isLocked())renderLock();else render();
   document.addEventListener('keydown',e=>{
+    if(isLocked())return;
     if(e.target.matches('input,select,textarea,button'))return;
     const mdlOpen=document.getElementById('mdl')?.classList.contains('open');
     if(e.key==='Escape'&&mdlOpen){closeModal();return;}
