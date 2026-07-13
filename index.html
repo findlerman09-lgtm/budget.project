@@ -836,15 +836,15 @@ function pgDrill(id){
     <div class="tbl-wrap"><table class="dt tbl-mobile">
       <thead><tr><th>Month</th><th style="text-align:right">Budget</th><th style="text-align:right">Spent</th><th>Progress</th><th style="text-align:right">Variance</th></tr></thead>
       <tbody>${moRows}</tbody></table></div></div>
-  ${als.length?`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Extra Funding (${yr})</h2><span class="c-muted" style="font-size:.72rem">Money added beyond the monthly budget</span></div>
-    <div class="tbl-wrap"><table class="dt">
-      <thead><tr><th>Date</th><th style="text-align:right">Amount</th><th>Notes</th><th></th></tr></thead>
-      <tbody>${alRows}</tbody></table></div></div>`:''}
   <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>All Transactions (${yr})</h2></div>
     <div class="tbl-wrap"><table class="dt tbl-mobile">
       <thead><tr><th>Date</th><th>Who</th><th style="text-align:right">Amount</th><th>Notes</th><th></th></tr></thead>
       <tbody>${rows||'<tr><td colspan="5"><div class="empty-state">No transactions recorded this year</div></td></tr>'}</tbody>
-    </table></div></div>`;
+    </table></div></div>
+  ${als.length?`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Extra Funding (${yr})</h2><span class="c-muted" style="font-size:.72rem">Money added beyond the monthly budget</span></div>
+    <div class="tbl-wrap"><table class="dt">
+      <thead><tr><th>Date</th><th style="text-align:right">Amount</th><th>Notes</th><th></th></tr></thead>
+      <tbody>${alRows}</tbody></table></div></div>`:''}`;
 }
 
 /* ── PAGE: CREDIT CARDS ─────────────────────────────────────────── */
@@ -1039,7 +1039,7 @@ function pgAccounts(){
     <td class="c-muted">${esc(a.notes||'')}</td>
     <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditAcct('${a.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delAcct('${a.id}')">Del</button></td>
   </tr>`).join('');
-  return`<div class="pg-hdr"><h1>Accounts</h1><button class="btn btn-primary" onclick="openAddAcct()">+ Add Account</button></div>
+  return`<div class="pg-hdr"><h1>Accounts</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openTransfer()">⇄ Transfer</button><button class="btn btn-primary" onclick="openAddAcct()">+ Add Account</button></span></div>
   ${fundH}
   <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>All Accounts</h2><span class="c-muted" style="font-size:.72rem">Click balance to edit</span></div>
   <div class="tbl-wrap"><table class="dt">
@@ -1511,6 +1511,32 @@ function editCardActualBal(id){
   el.replaceWith(inp);inp.focus();inp.select();
 }
 function setMonth(mo){db.cfg.month=mo;dbSave();pageR();}
+
+/* ── ACCOUNT TRANSFER ────────────────────────────────────────────── */
+function openTransfer(){
+  const accts=db.accounts||[];
+  if(accts.length<2){alert('You need at least two accounts to transfer between.');return;}
+  const opts=sel=>accts.map((a,i)=>`<option value="${a.id}"${i===sel?' selected':''}>${esc(a.bank)} ${esc(a.name)} (${$s(a.balance)})</option>`).join('');
+  openModal(`<div class="mhdr"><h3>Transfer Between Accounts</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Moves money between account balances. A negative amount reverses direction. Transfers don't touch income or expenses, so reconciliation stays balanced.</p>
+      <div class="fg"><label>From</label><select id="xf-from">${opts(0)}</select></div>
+      <div class="fg"><label>To</label><select id="xf-to">${opts(1)}</select></div>
+      <div class="fg"><label>Amount</label><input type="number" id="xf-amt" step="0.01" placeholder="0.00"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doTransfer()">Transfer</button></div>`);
+}
+function doTransfer(){
+  const fromId=document.getElementById('xf-from').value,toId=document.getElementById('xf-to').value;
+  const amt=parseFloat(document.getElementById('xf-amt').value)||0;
+  if(fromId===toId){alert('Pick two different accounts.');return;}
+  if(!amt){alert('Enter a non-zero amount.');return;}
+  const f=(db.accounts||[]).find(a=>a.id===fromId),t=(db.accounts||[]).find(a=>a.id===toId);
+  if(!f||!t)return;
+  f.balance=Math.round((f.balance-amt)*100)/100;
+  t.balance=Math.round((t.balance+amt)*100)/100;
+  dbSave();closeModal();pageR();
+}
 
 /* ── CARD PAYMENTS (running balance — pay any amount, any time) ──── */
 function openCardPay(card){
