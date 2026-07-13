@@ -368,7 +368,7 @@ function allocTot(bucketId,mo,yr){
   return s;
 }
 function pcExpected(who){return who==='Chris'?(+db.cfg.chrisPay||0):(+db.cfg.sarahPay||0);}
-function pcDelta(p){const e=pcExpected(p.who);return e>0?p.amount-e:0;}
+function pcDelta(p){if(p.kind==='other')return 0;const e=pcExpected(p.who);return e>0?p.amount-e:0;}
 function pcSurplus(p){return Math.max(0,pcDelta(p));}
 function pcAllocated(pcId){return(db.allocations||[]).filter(a=>a.pcId===pcId).reduce((s,a)=>s+a.amount,0);}
 function surplusYtd(yr){const y=yr??cyr();return(db.paychecks||[]).filter(p=>new Date(p.date+'T00:00:00').getFullYear()===y).reduce((s,p)=>s+pcSurplus(p),0);}
@@ -921,13 +921,15 @@ function pgPay(){
       <button class="btn btn-primary btn-sm" onclick="openAddPcFor('${w}','${iso}')">Log it</button>
     </div>`;
   }).join('');
+  const oA=yrPcs.filter(p=>p.kind==='other').reduce((s,p)=>s+p.amount,0);
   const rows=[...pcs].sort((a,b)=>b.date.localeCompare(a.date)).map(p=>{
     const dv=pcDelta(p),left=dv-pcAllocated(p.id);
     let note='';
     if(dv>0.005)note=`<div style="font-size:.68rem;font-weight:600" class="${left>0.005?'c-warn':'c-muted'}">+${$f(dv)} extra${left>0.005?' · '+$f(left)+' not in buckets':' · ✓ in buckets'}</div>`;
     else if(dv<-0.005)note=`<div style="font-size:.68rem;font-weight:600" class="${left<-0.005?'c-warn':'c-muted'}">−${$f(-dv)} short${left<-0.005?' · '+$f(-left)+' still in buckets':' · ✓ buckets reduced'}</div>`;
+    const whoCell=p.kind==='other'?`<span class="badge badge-neutral" style="font-size:.62rem">Other</span> ${esc(p.source||'')}`:esc(p.who);
     return`<tr>
-    <td style="white-space:nowrap">${fdate(p.date)}</td><td>${esc(p.who)}${p.acctId?`<div class="c-muted" style="font-size:.66rem">→ ${esc(acctName(p.acctId))}</div>`:''}</td>
+    <td style="white-space:nowrap">${fdate(p.date)}</td><td>${whoCell}${p.acctId?`<div class="c-muted" style="font-size:.66rem">→ ${esc(acctName(p.acctId))}</div>`:''}</td>
     <td style="text-align:right" class="c-green">${$f(p.amount)}${note}</td>
     <td class="c-muted">${esc(p.notes||'')}</td>
     <td style="white-space:nowrap">${Math.abs(left)>0.005&&Math.abs(dv)>0.005?`<button class="btn btn-success btn-xs" onclick="openAlloc('${p.id}')">${left>0?'Allocate':'Reconcile'}</button> `:''}<button class="btn btn-ghost btn-xs" onclick="openEditPc('${p.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delPc('${p.id}')">Del</button></td>
@@ -939,14 +941,15 @@ function pgPay(){
     <td class="c-muted">${esc(a.notes||'')}</td>
     <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditAlloc('${a.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delAlloc('${a.id}')">Del</button></td>
   </tr>`).join('');
-  return`<div class="pg-hdr"><h1>Paychecks</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openAlloc()">+ Add Funds to Bucket</button><button class="btn btn-primary" onclick="openAddPc()">+ Log Paycheck</button></span></div>
+  return`<div class="pg-hdr"><h1>Paychecks</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openAlloc()">+ Add Funds to Bucket</button><button class="btn btn-ghost" onclick="openAddOther()">+ Other Income</button><button class="btn btn-primary" onclick="openAddPc()">+ Log Paycheck</button></span></div>
   ${dueH}
   <div class="sum-row">
     <div class="sum-tile"><div class="sum-lbl">Chris Expected YTD</div><div class="sum-val">${cE!==null?$f(cE):'<span class="c-muted" style="font-size:.9rem">log first check</span>'}</div>${cSched?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">${cSched}</div>`:''}</div>
     <div class="sum-tile"><div class="sum-lbl">Chris Received</div><div class="sum-val c-green">${$f(cA)}</div>${cE!==null?`<div class="pbar" style="margin-top:6px"><div class="pb-${cA>=cE?'ok':'warn'}" style="width:${Math.min(100,Math.round(cA/cE*100))}%"></div></div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${Math.min(100,Math.round(cA/cE*100))}% · ${cA>=cE?'✓ on track':'⚠ '+$f(cE-cA)+' behind'}</div>`:''}</div>
     <div class="sum-tile"><div class="sum-lbl">Sarah Expected YTD</div><div class="sum-val">${sE!==null?$f(sE):'<span class="c-muted" style="font-size:.9rem">log first check</span>'}</div>${sSched?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">${sSched}</div>`:''}</div>
     <div class="sum-tile"><div class="sum-lbl">Sarah Received</div><div class="sum-val c-green">${$f(sA)}</div>${sE!==null?`<div class="pbar" style="margin-top:6px"><div class="pb-${sA>=sE?'ok':'warn'}" style="width:${Math.min(100,Math.round(sA/sE*100))}%"></div></div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${Math.min(100,Math.round(sA/sE*100))}% · ${sA>=sE?'✓ on track':'⚠ '+$f(sE-sA)+' behind'}</div>`:''}</div>
-    <div class="sum-tile"><div class="sum-lbl">Total Received</div><div class="sum-val c-green">${$f(cA+sA)}</div></div>
+    ${oA>0.005?`<div class="sum-tile"><div class="sum-lbl">Other Income</div><div class="sum-val c-green">${$f(oA)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">bonuses, refunds, gifts…</div></div>`:''}
+    <div class="sum-tile"><div class="sum-lbl">Total Received</div><div class="sum-val c-green">${$f(cA+sA+oA)}</div></div>
     <div class="sum-tile"><div class="sum-lbl">Extra Received</div><div class="sum-val ${exYtd>0.005?'c-green':''}">${$f(exYtd)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">over expected pay YTD</div></div>
     <div class="sum-tile"><div class="sum-lbl">Unreconciled</div><div class="sum-val ${unrec.over>1||unrec.under>1?'c-warn':'c-green'}">${$f(unrec.over+unrec.under)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${unrec.over>1||unrec.under>1?[unrec.over>1?$f(unrec.over)+' extra not in buckets':'',unrec.under>1?$f(unrec.under)+' short not pulled back':''].filter(Boolean).join(' · '):'✓ buckets match paychecks'}</div></div>
   </div>
@@ -1242,7 +1245,7 @@ function delTx(id){if(!confirm('Delete this transaction?'))return;db.transaction
 function defAcct(who){return db.cfg[who==='Chris'?'chrisAcct':'sarahAcct']||'';}
 function openAddPc(){_ePcId=null;showPcModal({date:today(),who:'Chris',amount:db.cfg.chrisPay,acctId:defAcct('Chris'),notes:''},'Log Paycheck');}
 function openAddPcFor(who,date){_ePcId=null;showPcModal({date,who,amount:pcExpected(who)||'',acctId:defAcct(who),notes:''},'Log Paycheck');}
-function openEditPc(id){_ePcId=id;const p=(db.paychecks||[]).find(x=>x.id===id);if(p)showPcModal({...p},'Edit Paycheck');}
+function openEditPc(id){_ePcId=id;const p=(db.paychecks||[]).find(x=>x.id===id);if(!p)return;if(p.kind==='other')showOtherModal({...p},'Edit Other Income');else showPcModal({...p},'Edit Paycheck');}
 function showPcModal(p,title){
   const wO=['Chris','Sarah'].map(w=>`<option value="${w}"${p.who===w?' selected':''}>${w}</option>`).join('');
   const aO=`<option value="">— none (update balance yourself) —</option>`+(db.accounts||[]).map(a=>`<option value="${a.id}"${p.acctId===a.id?' selected':''}>${esc(a.bank)} ${esc(a.name)}</option>`).join('');
@@ -1299,6 +1302,39 @@ function delPc(id){
   if(!confirm(`Delete this paycheck?${p&&p.acctId?`\n${acctName(p.acctId)}'s balance will be reduced by ${$f(p.amount)}.`:''}`))return;
   if(p)pcAcctAdjust(p.acctId,-p.amount);
   db.paychecks=(db.paychecks||[]).filter(x=>x.id!==id);dbSave();pageR();
+}
+
+/* ── OTHER INCOME (not compared to expected pay, never "unallocated") ── */
+function openAddOther(){_ePcId=null;showOtherModal({date:today(),source:'',amount:'',acctId:'',notes:''},'Log Other Income');}
+function showOtherModal(p,title){
+  const aO=`<option value="">— none (update balance yourself) —</option>`+(db.accounts||[]).map(a=>`<option value="${a.id}"${p.acctId===a.id?' selected':''}>${esc(a.bank)} ${esc(a.name)}</option>`).join('');
+  openModal(`<div class="mhdr"><h3>${title}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Counts as income like a paycheck, but isn't compared to expected pay and is never flagged as unallocated. To budget it into buckets, use "+ Add Funds to Bucket" afterward.</p>
+      <div class="frow">
+        <div class="fg"><label>Date</label><input type="date" id="of-date" value="${p.date}"/></div>
+        <div class="fg"><label>Amount</label><input type="number" id="of-amt" step="0.01" min="0" placeholder="0.00" value="${p.amount}"/></div>
+      </div>
+      <div class="fg"><label>Source</label><input type="text" id="of-src" placeholder="Bonus, tax refund, gift, side job…" value="${esc(p.source||'')}"/></div>
+      <div class="fg"><label>Deposit To</label><select id="of-acct">${aO}</select><div class="c-muted" style="font-size:.72rem;margin-top:3px">The account balance is bumped automatically when a deposit account is chosen</div></div>
+      <div class="fg"><label>Notes</label><input type="text" id="of-notes" value="${esc(p.notes||'')}"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveOther()">Save</button></div>`);
+}
+function saveOther(){
+  const p={id:_ePcId||uid(),date:document.getElementById('of-date').value,
+    who:'Other',kind:'other',
+    source:document.getElementById('of-src').value.trim()||'Other income',
+    amount:parseFloat(document.getElementById('of-amt').value)||0,
+    acctId:document.getElementById('of-acct').value||'',
+    notes:document.getElementById('of-notes').value.trim()};
+  if(!p.date||p.amount<=0){alert('Please enter date and amount.');return;}
+  if(!db.paychecks)db.paychecks=[];
+  const prev=_ePcId?db.paychecks.find(x=>x.id===_ePcId):null;
+  if(prev)pcAcctAdjust(prev.acctId,-prev.amount);
+  pcAcctAdjust(p.acctId,p.amount);
+  if(_ePcId){const i=db.paychecks.findIndex(x=>x.id===_ePcId);if(i>=0)db.paychecks[i]=p;}else db.paychecks.push(p);
+  dbSave();closeModal();pageR();
 }
 
 /* ── BUCKET ALLOCATIONS (extra paycheck money → buckets) ────────── */
