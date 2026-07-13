@@ -1049,6 +1049,11 @@ function pgAccounts(){
       <td style="text-align:right;font-weight:700" class="${tot<0?'c-red':'c-green'}">${$s(tot)}</td>
       <td colspan="2"></td></tr></tfoot>
   </table></div></div>
+  ${(db.acctLog||[]).length?`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Balance History</h2><span class="c-muted" style="font-size:.72rem">Transfers and manual balance edits (last 20)</span></div>
+  <div class="tbl-wrap"><table class="dt">
+    <thead><tr><th style="white-space:nowrap">When</th><th>What</th></tr></thead>
+    <tbody>${(db.acctLog||[]).slice(0,20).map(l=>`<tr><td style="white-space:nowrap" class="c-muted">${fdate(l.ts.slice(0,10))} ${l.ts.slice(11,16)}</td><td>${esc(l.text)}</td></tr>`).join('')}</tbody>
+  </table></div></div>`:''}
   <div class="card"><div class="card-hdr"><h2>Overall Reconciliation</h2></div>
     <div class="sum-row">
       <div class="sum-tile"><div class="sum-lbl">Opening Balance</div><div class="sum-val">${$s(aOb)}</div></div>
@@ -1258,6 +1263,8 @@ function saveTx(){
     amount:amt,type:document.getElementById('tf-type').value,
     bucket:bktv,card:document.getElementById('tf-card').value,
     desc:document.getElementById('tf-desc').value.trim()};
+  const dup=db.transactions.find(x=>x.id!==t.id&&x.date===t.date&&x.type===t.type&&x.bucket===t.bucket&&Math.abs(x.amount-t.amount)<0.005);
+  if(dup&&!confirm(`Possible duplicate!\n\n${fdate(dup.date)} · ${dup.type==='expense'?'−':'+'}${$f(dup.amount)} · ${bname(dup.bucket)}${dup.desc?`\n"${dup.desc}"`:''}\n\nis already logged. Save this one anyway?`))return;
   if(_eTxId){const i=db.transactions.findIndex(x=>x.id===_eTxId);if(i>=0)db.transactions[i]=t;}
   else db.transactions.push(t);
   dbSave();closeModal();pageR();
@@ -1473,7 +1480,11 @@ function editAcctBal(id){
   if(!a||!el)return;
   const inp=document.createElement('input');
   inp.type='number';inp.step='0.01';inp.value=a.balance;inp.className='iinp';
-  inp.onblur=()=>{a.balance=parseFloat(inp.value)||0;dbSave();pageR();};
+  inp.onblur=()=>{
+    const nv=parseFloat(inp.value)||0;
+    if(Math.abs(nv-a.balance)>0.005)acctLogAdd(`Balance edit: ${a.bank} ${a.name} ${$s(a.balance)} → ${$s(nv)} (${$pm(nv-a.balance)})`);
+    a.balance=nv;dbSave();pageR();
+  };
   inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')pageR();};
   el.replaceWith(inp);inp.focus();inp.select();
 }
@@ -1512,6 +1523,13 @@ function editCardActualBal(id){
 }
 function setMonth(mo){db.cfg.month=mo;dbSave();pageR();}
 
+/* ── BALANCE HISTORY LOG ─────────────────────────────────────────── */
+function acctLogAdd(text){
+  if(!db.acctLog)db.acctLog=[];
+  db.acctLog.unshift({id:uid(),ts:new Date().toISOString(),text});
+  while(db.acctLog.length>300)db.acctLog.pop();
+}
+
 /* ── ACCOUNT TRANSFER ────────────────────────────────────────────── */
 function openTransfer(){
   const accts=db.accounts||[];
@@ -1535,6 +1553,8 @@ function doTransfer(){
   if(!f||!t)return;
   f.balance=Math.round((f.balance-amt)*100)/100;
   t.balance=Math.round((t.balance+amt)*100)/100;
+  const[src,dst]=amt>=0?[f,t]:[t,f];
+  acctLogAdd(`Transfer ${$f(Math.abs(amt))}: ${src.bank} ${src.name} → ${dst.bank} ${dst.name}`);
   dbSave();closeModal();pageR();
 }
 
@@ -1612,6 +1632,7 @@ function importFile(inp){
       if(!db.cards)db.cards=[...DEFAULT_CARDS];
     if(!db.cardActualBalance)db.cardActualBalance={};
       if(!db.allocations)db.allocations=[];
+      if(!db.acctLog)db.acctLog=[];
       dbSave();render();alert('Import successful!');
     }catch(err){alert('Failed to parse JSON: '+err.message);}
   };
@@ -1629,7 +1650,7 @@ function clearAll(){
   if(!confirm('Final confirmation: all data will be permanently deleted.'))return;
   db={version:5,exportedAt:new Date().toISOString().slice(0,10),
     cfg:{chrisPay:0,sarahPay:0,month:new Date().getMonth()+1,year:new Date().getFullYear(),criticalBills:0,emergencyFund:0},
-    buckets:[],transactions:[],paychecks:[],accounts:[],cards:[],cardPayments:[],allocations:[]};
+    buckets:[],transactions:[],paychecks:[],accounts:[],cards:[],cardPayments:[],allocations:[],acctLog:[]};
   dbSave();render();
 }
 
@@ -1755,6 +1776,7 @@ function init(){
     if(!db.cards)db.cards=[...DEFAULT_CARDS];
     if(!db.cardActualBalance)db.cardActualBalance={};
     if(!db.allocations)db.allocations=[];
+    if(!db.acctLog)db.acctLog=[];
   }else{
     db=dc(SEED);
     if(!db.cardPayments)db.cardPayments=[];
@@ -1762,6 +1784,7 @@ function init(){
     if(!db.cards)db.cards=[...DEFAULT_CARDS];
     if(!db.cardActualBalance)db.cardActualBalance={};
     if(!db.allocations)db.allocations=[];
+    if(!db.acctLog)db.acctLog=[];
     dbSave();
   }
   snapshot();
