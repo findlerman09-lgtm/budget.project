@@ -420,6 +420,11 @@ function cardOutstanding(card){
   }
   return Math.round(s*100)/100;
 }
+function cardsOwed(){
+  let s=+(db.cfg.pendingAmex)||0;
+  for(const c of getCards())s+=cardOutstanding(c.id);
+  return Math.round(s*100)/100;
+}
 function acctTot(){return(db.accounts||[]).reduce((s,a)=>s+a.balance,0);}
 function ytdTot(type){
   const yr=cyr();
@@ -516,7 +521,7 @@ function pgDash(){
   const inc=ytdTot('income')+pcInc,exp=ytdTot('expense'),net=inc-exp,tot=acctTot(),ef=+(db.cfg.emergencyFund)||0;
   const ob=acctObTotal();
   const expTot=ob+inc-exp,recon=expTot-tot;
-  const pendingAmex=+(db.cfg.pendingAmex)||0,adjTot=tot-pendingAmex;
+  const pendingAmex=+(db.cfg.pendingAmex)||0,onCards=cardsOwed(),unexpl=Math.round((recon+onCards)*100)/100,adjTot=tot-onCards;
   // Spending pace
   const _tnow=new Date(),_dayOfMo=_tnow.getDate(),_daysInMo=new Date(yr,mo,0).getDate();
   const _moExp=db.transactions.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===mo&&d.getFullYear()===yr&&t.type==='expense';}).reduce((s,t)=>s+t.amount,0);
@@ -602,7 +607,7 @@ function pgDash(){
       <span>Expected <b>${$s(expTot)}</b></span>
       <span>Actual <b>${$s(tot)}</b></span>
       ${_pace!==null?`<span style="color:rgba(255,255,255,.7)">Pace: <b style="color:#fff">${$f(_pace)}</b> projected</span>`:''}
-      ${Math.abs(recon)<0.01?`<span style="color:#34d399">${ico('check',13)} Balanced</span>`:`<span style="color:#f87171">Off by ${$s(recon)}</span>`}
+      ${Math.abs(unexpl)<1?`<span style="color:#34d399">${ico('check',13)} Balanced${onCards>0.005?` · ${$f(onCards)} on cards`:''}</span>`:`<span style="color:#f87171">Unexplained ${$s(unexpl)}</span>`}
     </div>
   </div>
   <div class="sum-row">
@@ -611,15 +616,15 @@ function pgDash(){
     </div>
     <div class="sum-tile ${net>=0?'sum-tile-green':'sum-tile-red'}"><div class="sum-lbl">Net YTD</div><div class="sum-val ${net>=0?'c-green':'c-red'}">${$s(net)}</div></div>
     <div class="sum-tile sum-tile-amber"><div class="sum-lbl">Emergency Fund</div><div class="sum-val edh" onclick="editEFund()" id="ef-disp" title="Click to edit">${$f(ef)}</div></div>
-    <div class="sum-tile sum-tile-amber"><div class="sum-lbl">Pending Amex</div><div class="sum-val edh" onclick="editPendingAmex()" id="pamex-disp" title="Click to set">${pendingAmex>0?`<span class="c-red">${$f(pendingAmex)}</span>`:`<span class="c-muted">${$f(0)}</span>`}</div></div>
-    <div class="sum-tile ${Math.abs(recon)<0.01?'sum-tile-green':'sum-tile-red'}"><div class="sum-lbl">Reconciliation</div><div class="sum-val ${Math.abs(recon)<0.01?'c-green':'c-red'}" title="Expected minus Actual">${Math.abs(recon)<0.01?'✓ Balanced':`${recon>0?'+':''}${$s(recon)}`}</div></div>
+    <div class="sum-tile sum-tile-amber"><div class="sum-lbl">On Credit Cards</div><div class="sum-val ${onCards>0.005?'c-red':'c-muted'}" title="Tracked card balances plus the manual pending Amex amount — money already spent in the budget but not yet out of the bank">${$f(onCards)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">cards ${$f(onCards-pendingAmex)} · Amex <span class="edh" onclick="editPendingAmex()" id="pamex-disp" title="Click to set pending Amex">${$f(pendingAmex)}</span></div></div>
+    <div class="sum-tile ${Math.abs(unexpl)<1?'sum-tile-green':'sum-tile-red'}"><div class="sum-lbl">Unexplained</div><div class="sum-val ${Math.abs(unexpl)<1?'c-green':'c-red'}" title="Difference (Expected − Actual) plus what's still owed on credit cards. Near zero means every dollar is accounted for; card charges awaiting payment no longer show as drift.">${Math.abs(unexpl)<1?'✓ Balanced':`${unexpl>0?'+':''}${$s(unexpl)}`}</div>${Math.abs(recon)>=0.01?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">difference ${$s(recon)} + cards ${$f(onCards)}</div>`:''}</div>
   </div>
   <div class="sum-row">
     <div class="sum-tile"><div class="sum-lbl">Opening Balance</div><div class="sum-val">${$s(ob)}</div></div>
     <div class="sum-tile sum-tile-green"><div class="sum-lbl">YTD Paychecks</div><div class="sum-val c-green">${$f(pcInc)}</div></div>
     <div class="sum-tile sum-tile-blue"><div class="sum-lbl">Expected Total</div><div class="sum-val">${$s(expTot)}</div></div>
     <div class="sum-tile sum-tile-blue"><div class="sum-lbl">All Accounts</div><div class="sum-val">${$s(tot)}</div></div>
-    <div class="sum-tile sum-tile-green"><div class="sum-lbl">Adjusted Total</div><div class="sum-val ${adjTot<0?'c-red':'c-green'}" title="All Accounts minus pending Amex">${$s(adjTot)}</div></div>
+    <div class="sum-tile sum-tile-green"><div class="sum-lbl">Adjusted Total</div><div class="sum-val ${adjTot<0?'c-red':'c-green'}" title="All Accounts minus everything owed on credit cards">${$s(adjTot)}</div></div>
   </div>
   <div class="card"><div class="card-hdr"><h2>Accounts</h2><span class="c-muted" style="font-size:.72rem">Click balance to edit</span></div>
     <div class="acct-grid">${acctsH}</div></div>
@@ -988,6 +993,7 @@ function pgAccounts(){
   const aTxInc=ytdTot('income'),aTxExp=ytdTot('expense'),aTotInc=aPcInc+aTxInc;
   const aOb=acctObTotal();
   const aExpTot=aOb+aTotInc-aTxExp,aRecon=aExpTot-tot;
+  const aOnCards=cardsOwed(),aUnexpl=Math.round((aRecon+aOnCards)*100)/100;
   const typeLabels={accrual:'Accrual',bills:'Bills',spending:'Spending',savings:'Savings'};
 
   const fundH=(db.accounts||[]).filter(a=>a.bucketType).map(a=>{
@@ -1050,9 +1056,11 @@ function pgAccounts(){
       <div class="sum-tile"><div class="sum-lbl">YTD Expenses</div><div class="sum-val c-red">−${$f(aTxExp)}</div></div>
       <div class="sum-tile"><div class="sum-lbl">Expected Total</div><div class="sum-val">${$s(aExpTot)}</div></div>
       <div class="sum-tile"><div class="sum-lbl">Actual Total</div><div class="sum-val">${$s(tot)}</div></div>
-      <div class="sum-tile"><div class="sum-lbl">Difference</div><div class="sum-val ${Math.abs(aRecon)<0.01?'c-green':'c-red'}" title="Expected minus Actual. Zero means fully balanced.">${aRecon>0?'+':''}${$s(aRecon)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">Difference</div><div class="sum-val ${Math.abs(aRecon)<0.01?'c-green':'c-muted'}" title="Expected minus Actual. This grows as card charges await payment — that part is normal float, not error.">${aRecon>0?'+':''}${$s(aRecon)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">On Credit Cards</div><div class="sum-val ${aOnCards>0.005?'c-red':'c-muted'}" title="Tracked card balances plus the manual pending Amex amount">+${$f(aOnCards)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">Unexplained</div><div class="sum-val ${Math.abs(aUnexpl)<1?'c-green':'c-red'}" title="Difference plus what's still owed on credit cards. This is the number to watch — near zero means every dollar is accounted for.">${Math.abs(aUnexpl)<1?'✓ Balanced':`${aUnexpl>0?'+':''}${$s(aUnexpl)}`}</div></div>
     </div>
-    <p class="c-muted" style="font-size:.78rem;margin-top:2px">Expected = Opening Balance + YTD Income (paychecks + credits) − YTD Expenses. Opening Balance is the sum of all per-account Jan 1 values.</p>
+    <p class="c-muted" style="font-size:.78rem;margin-top:2px">Expected = Opening Balance + YTD Income (paychecks + credits) − YTD Expenses. Charges you've logged but not yet paid off sit "on credit cards", so the Difference naturally runs negative by that amount — <strong>Unexplained</strong> (Difference + On Credit Cards) is the true health check.</p>
   </div>`;
 }
 
