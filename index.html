@@ -410,7 +410,16 @@ function cardTxs(card,mo,yr){
   }).sort((a,b)=>b.date.localeCompare(a.date));
 }
 
-function isPaid(card){return(db.cardPayments||[]).some(p=>p.card===card&&p.month===cmo()&&p.year===cyr());}
+function cardOutstanding(card){
+  let s=0;
+  for(const t of db.transactions){
+    if(t.card!==card)continue;
+    if(t.type==='cc_payment')s-=t.amount;
+    else if(t.type==='expense')s+=t.amount;
+    else s-=t.amount;
+  }
+  return Math.round(s*100)/100;
+}
 function acctTot(){return(db.accounts||[]).reduce((s,a)=>s+a.balance,0);}
 function ytdTot(type){
   const yr=cyr();
@@ -837,43 +846,49 @@ function pgDrill(id){
 function pgCards(){
   const mo=cmo(),yr=cyr();
   const panels=getCards().map(({id:card,label:_clbl})=>{
-    const txs=cardTxs(card,mo,yr),bal=cardBal(card,mo,yr),paid=isPaid(card);
+    const txs=cardTxs(card,mo,yr),moBal=cardBal(card,mo,yr),out=cardOutstanding(card);
+    const carried=Math.round((out-moBal)*100)/100;
     const actual=+((db.cardActualBalance||{})[card]||0);
-    const diff=Math.round((actual-bal)*100)/100;
+    const diff=Math.round((actual-out)*100)/100;
     const txR=txs.length?txs.map(t=>`<div class="cc-row${t.type!=='expense'?' cc-credit':''}">
       <span style="color:var(--muted);white-space:nowrap;font-size:.72rem">${fdate(t.date)}</span>
       <span style="flex:1;margin:0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.desc||bname(t.bucket))}</span>
       <span class="${t.type==='expense'?'c-red':'c-green'}" style="white-space:nowrap;font-weight:600">${t.type==='expense'?'−':'+'}${$f(t.amount)}</span>
       <span style="white-space:nowrap;margin-left:4px;flex-shrink:0"><button class="btn btn-ghost btn-xs" onclick="openEditTx('${t.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delTx('${t.id}')">Del</button></span>
     </div>`).join(''):'<div class="empty-state">No charges this month</div>';
-    const hdrBadge=paid?'<span class="paid-badge">✓ Paid</span>':bal>0?`<span class="badge badge-red" style="font-size:.65rem;font-weight:700">${$f(bal)} due</span>`:`<span class="badge badge-neutral" style="font-size:.65rem">${MO[mo-1]} ${yr}</span>`;
+    const hdrBadge=out>0.005?`<span class="badge badge-red" style="font-size:.65rem;font-weight:700">${$f(out)} owed</span>`:'<span class="paid-badge">✓ Paid off</span>';
     return`<div class="cc-panel">
       <div class="cc-hdr"><span class="cc-name">${_clbl}</span>${hdrBadge}</div>
       <div class="cc-body">${txR}
-        <div class="cc-total"><span>App Balance</span><span class="${bal>0?'c-red':'c-muted'}">${$f(bal)}</span></div>
+        <div class="cc-total"><span>${MO[mo-1]} Charges</span><span class="${moBal>0?'c-red':'c-muted'}">${$f(moBal)}</span></div>
+        <div class="cc-total"><span style="font-weight:700">Outstanding Balance${carried>0.005?`<div class="c-muted" style="font-size:.68rem;font-weight:400">incl. ${$f(carried)} from earlier months</div>`:''}</span><span class="${out>0.005?'c-red':'c-green'}" style="font-weight:700">${$f(out)}</span></div>
         <div class="cc-total" style="border-top:1px solid var(--border);padding-top:6px;margin-top:2px">
-          <span>Statement Bal <span style="font-size:.7rem;color:var(--muted);font-weight:400">(click)</span></span>
+          <span>Card Says <span style="font-size:.7rem;color:var(--muted);font-weight:400">(click)</span></span>
           <span class="edh" id="cbal-${card}" onclick="editCardActualBal('${card}')">${$f(actual)}</span>
         </div>
         <div class="cc-total">
           <span style="color:var(--muted)">Difference</span>
-          ${Math.abs(diff)<0.01?`<span class="c-green">✓ Match</span>`:`<span class="${diff>0?'c-red':'c-green'}">${diff>0?'+':''}${$f(diff)}</span>`}
+          ${Math.abs(diff)<0.01?`<span class="c-green">✓ Match</span>`:`<span class="${diff>0?'c-red':'c-green'}" title="What the card company says minus the app's outstanding balance">${diff>0?'+':''}${$f(diff)}</span>`}
         </div>
       </div>
       <div class="cc-foot">
-        ${paid?`<span style="display:flex;align-items:center;gap:7px"><span class="paid-badge">✓ Paid ${MO[mo-1]} ${yr}</span><button class="btn btn-ghost btn-xs" onclick="unpayCard('${card}')" title="Undo payment to add/edit charges">Undo</button></span>`:`<button class="btn btn-success btn-sm" onclick="markPaid('${card}')">Mark as Paid</button>`}
+        <button class="btn btn-success btn-sm" onclick="openCardPay('${card}')">Make a Payment</button>
         <button class="btn btn-ghost btn-sm" onclick="openAddTx(null,'${card}')">+ Add Charge</button>
       </div>
     </div>`;}).join('');
-  const hist=[...(db.cardPayments||[])].sort((a,b)=>`${b.year}-${String(b.month).padStart(2,'0')}`.localeCompare(`${a.year}-${String(a.month).padStart(2,'0')}`)).slice(0,20);
-  const histR=hist.map(p=>`<tr><td>${cardLabel(p.card)}</td><td>${MO[p.month-1]} ${p.year}</td>
-    <td style="text-align:right">${$f(p.amount)}</td>
-    <td class="c-muted">${p.paidAt?fdate(p.paidAt.slice(0,10)):''}</td></tr>`).join('');
+  const pays=db.transactions.filter(t=>t.type==='cc_payment').sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+  const histR=pays.map(t=>`<tr><td>${cardLabel(t.card)}</td>
+    <td style="white-space:nowrap">${fdate(t.date)}</td>
+    <td style="text-align:right">${$f(t.amount)}</td>
+    <td class="c-muted">${esc(acctName(t.fromAccount)||'—')}</td>
+    <td class="c-muted">${esc(t.desc||'')}</td>
+    <td><button class="btn btn-danger btn-xs" onclick="undoCardPayment('${t.id}')">Undo</button></td>
+  </tr>`).join('');
   return`<div class="pg-hdr"><h1>Credit Cards — ${MO[mo-1]} ${yr}</h1></div>
   <div class="cc-grid">${panels}</div>
-  ${hist.length?`<div class="card" style="margin-top:14px;padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Payment History</h2></div>
+  ${pays.length?`<div class="card" style="margin-top:14px;padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Payment History</h2><span class="c-muted" style="font-size:.72rem">Undo reverses one payment and restores the account balance</span></div>
     <div class="tbl-wrap"><table class="dt">
-      <thead><tr><th>Card</th><th>Period</th><th style="text-align:right">Amount</th><th>Date Marked</th></tr></thead>
+      <thead><tr><th>Card</th><th>Date</th><th style="text-align:right">Amount</th><th>From</th><th>Notes</th><th></th></tr></thead>
       <tbody>${histR}</tbody></table></div></div>`:''}`;
 }
 
@@ -1075,7 +1090,7 @@ function pgBackup(){
       <div><div style="font-size:1.4rem;font-weight:700">${(db.accounts||[]).length}</div><div class="c-muted">Accounts</div></div>
       <div><div style="font-size:1.4rem;font-weight:700">${(db.paychecks||[]).length}</div><div class="c-muted">Paychecks</div></div>
       <div><div style="font-size:1.4rem;font-weight:700">${(db.allocations||[]).length}</div><div class="c-muted">Allocations</div></div>
-      <div><div style="font-size:1.4rem;font-weight:700">${(db.cardPayments||[]).length}</div><div class="c-muted">Card Payments</div></div>
+      <div><div style="font-size:1.4rem;font-weight:700">${db.transactions.filter(t=>t.type==='cc_payment').length}</div><div class="c-muted">Card Payments</div></div>
     </div>
   </div>
   <div class="card" style="border:1px solid #dc2626">
@@ -1489,56 +1504,43 @@ function editCardActualBal(id){
 }
 function setMonth(mo){db.cfg.month=mo;dbSave();pageR();}
 
-/* ── CARD PAYMENTS ──────────────────────────────────────────────── */
-function markPaid(card){
-  const mo=cmo(),yr=cyr(),bal=cardBal(card,mo,yr),lbl=cardLabel(card);
+/* ── CARD PAYMENTS (running balance — pay any amount, any time) ──── */
+function openCardPay(card){
+  const out=cardOutstanding(card),lbl=cardLabel(card);
+  if(!(db.accounts||[]).length){alert('Add a bank account first (Accounts page) so the payment can come from somewhere.');return;}
   const acctOpts=(db.accounts||[]).map(a=>`<option value="${a.id}">${esc(a.bank)} — ${esc(a.name)}</option>`).join('');
   openModal(`<div class="mhdr"><h3>Pay ${esc(lbl)}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
     <div class="mbody">
+      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Outstanding balance is ${$f(out)}. Pay any amount — partial payments and multiple payments per month are fine; whatever remains stays owed.</p>
       <div class="fg"><label>Pay From Account</label><select id="cp-acct">${acctOpts}</select></div>
       <div class="frow">
         <div class="fg"><label>Date</label><input type="date" id="cp-date" value="${today()}"/></div>
-        <div class="fg"><label>Amount</label><input type="number" id="cp-amt" step="0.01" value="${bal.toFixed(2)}"/></div>
+        <div class="fg"><label>Amount</label><input type="number" id="cp-amt" step="0.01" value="${out>0.005?out.toFixed(2):''}"/></div>
       </div>
       <div class="fg"><label>Notes</label><input type="text" id="cp-notes" value="CC Payment — ${esc(lbl)}"/></div>
     </div>
-    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-success" onclick="confirmMarkPaid('${card}')">Confirm Payment</button></div>`);
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-success" onclick="confirmCardPay('${card}')">Confirm Payment</button></div>`);
 }
-function confirmMarkPaid(card){
-  const mo=cmo(),yr=cyr();
+function confirmCardPay(card){
   const acctId=document.getElementById('cp-acct').value;
   const date=document.getElementById('cp-date').value;
   const amt=parseFloat(document.getElementById('cp-amt').value)||0;
   const notes=document.getElementById('cp-notes').value.trim();
   if(!date||amt<=0){alert('Please enter date and amount.');return;}
-  if(!db.cardPayments)db.cardPayments=[];
-  db.cardPayments=db.cardPayments.filter(p=>!(p.card===card&&p.month===mo&&p.year===yr));
-  const txId=uid();
-  db.transactions.push({id:txId,date,who:'Both',amount:amt,type:'cc_payment',bucket:'',card,desc:notes,fromAccount:acctId});
-  db.cardPayments.push({card,month:mo,year:yr,amount:amt,paidAt:new Date().toISOString(),fromAccount:acctId,txId});
+  db.transactions.push({id:uid(),date,who:'Both',amount:amt,type:'cc_payment',bucket:'',card,desc:notes,fromAccount:acctId});
   const acct=(db.accounts||[]).find(a=>a.id===acctId);
   if(acct)acct.balance=Math.round((acct.balance-amt)*100)/100;
   dbSave();closeModal();pageR();
 }
-function unpayCard(card){
-  const mo=cmo(),yr=cyr();
-  const payment=(db.cardPayments||[]).find(p=>p.card===card&&p.month===mo&&p.year===yr);
-  if(!payment)return;
-  const lbl=cardLabel(card),amt=payment.amount;
-  if(!confirm(`Undo payment of ${$f(amt)} for ${lbl}?\n\nThis will remove the payment transaction and restore the account balance so you can add or edit charges.`))return;
-  // Remove cc_payment transaction — by txId if stored, and also sweep any cc_payment for this card+month/year
-  db.transactions=db.transactions.filter(t=>{
-    if(t.type!=='cc_payment'||t.card!==card)return true;
-    if(payment.txId&&t.id===payment.txId)return false;
-    const d=new Date(t.date+'T00:00:00');
-    if(d.getMonth()+1===mo&&d.getFullYear()===yr)return false;
-    return true;
-  });
-  // Restore account balance
-  const acct=payment.fromAccount?(db.accounts||[]).find(a=>a.id===payment.fromAccount):null;
-  if(acct)acct.balance=Math.round((acct.balance+amt)*100)/100;
-  // Remove payment record
-  db.cardPayments=db.cardPayments.filter(p=>!(p.card===card&&p.month===mo&&p.year===yr));
+function undoCardPayment(txId){
+  const t=db.transactions.find(x=>x.id===txId&&x.type==='cc_payment');
+  if(!t)return;
+  const from=acctName(t.fromAccount);
+  if(!confirm(`Undo the ${$f(t.amount)} payment on ${cardLabel(t.card)} from ${fdate(t.date)}?${from?`\n${from}'s balance will be restored by ${$f(t.amount)}.`:''}`))return;
+  const acct=t.fromAccount?(db.accounts||[]).find(a=>a.id===t.fromAccount):null;
+  if(acct)acct.balance=Math.round((acct.balance+t.amount)*100)/100;
+  db.transactions=db.transactions.filter(x=>x.id!==txId);
+  db.cardPayments=(db.cardPayments||[]).filter(p=>p.txId!==txId);
   dbSave();pageR();
 }
 
