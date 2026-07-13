@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BudgetLock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --primary:#4f46e5;--primary-dk:#4338ca;--primary-lt:#eef2ff;
+  --navy:#0f172a;--navy-2:#1e1b4b;
+  --success:#059669;--warn:#d97706;--danger:#dc2626;
+  --bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;
+  --r:10px;
+  --sh-sm:0 1px 2px rgba(0,0,0,.05),0 1px 4px rgba(0,0,0,.03);
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --sh-lg:0 4px 8px rgba(0,0,0,.07),0 16px 40px rgba(0,0,0,.08);
+  --surface:#f1f5f9;--input-bg:#fff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;font-feature-settings:'cv02','cv03','cv04','cv11'}
+input,select,textarea,button{font-family:inherit;font-size:inherit}
+#navbar{position:sticky;top:0;z-index:50;background:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.nav-inner{display:flex;align-items:center;padding:0 14px;min-height:50px;overflow-x:auto;gap:2px;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-brand{font-weight:700;font-size:.95rem;color:#fff;white-space:nowrap;margin-right:10px;flex-shrink:0}
+.ntab{background:none;border:none;color:#94a3b8;padding:5px 11px;border-radius:5px;cursor:pointer;font-size:.79rem;font-weight:500;white-space:nowrap;transition:background .1s,color .1s}
+.ntab:hover{background:rgba(255,255,255,.08);color:#e2e8f0}
+.ntab.on{background:var(--primary);color:#fff}
+#app{max-width:1240px;margin:0 auto;padding:18px 14px 48px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:16px 18px;margin-bottom:14px;transition:box-shadow .15s}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--border)}
+.card-hdr h2{font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.pg-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.pg-hdr h1{font-size:1.3rem;font-weight:700}
+.sum-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin-bottom:14px}
+.sum-tile{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-sm);padding:14px 16px;transition:box-shadow .15s}
+.sum-lbl{font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
+.sum-val{font-size:1.25rem;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.alerts-wrap{margin-bottom:12px}
+.alerts-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.alerts{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.alert{display:flex;gap:8px;padding:9px 13px;border-radius:var(--r);font-size:.84rem;line-height:1.5;align-items:flex-start}
+.al-danger{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.al-warn{background:#fffbeb;border:1px solid #fde68a;color:#78350f}
+.acct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px}
+.acct-tile{border:1px solid var(--border);border-radius:var(--r);padding:11px 13px}
+.acct-tile.neg{border-color:#fca5a5;background:#fef2f2}
+.acct-bank{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.acct-name{font-weight:600;margin:2px 0 4px}
+.acct-bal{font-size:1.1rem;font-weight:700;cursor:pointer;display:inline-block;border-bottom:2px dashed transparent;padding-bottom:1px}
+.acct-bal:hover{border-bottom-color:var(--primary)}
+.acct-avail{font-size:1.55rem;font-weight:800;cursor:pointer;letter-spacing:-.02em;line-height:1.1;margin:6px 0 2px;border-bottom:2px dashed transparent;display:inline-block;padding-bottom:1px}
+.acct-avail:hover{border-bottom-color:var(--primary)}
+.acct-notes{font-size:.7rem;color:var(--muted);margin-top:3px}
+.hgroup{margin-bottom:16px}
+.hgroup-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;padding-left:4px}
+.hrow{display:flex;align-items:center;gap:9px;padding:4px 5px;border-radius:5px;cursor:pointer;transition:background .1s}
+.hrow:hover{background:var(--surface)}
+.hlbl{flex:0 1 160px;min-width:60px;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar-w{flex:1;min-width:30px;background:#e2e8f0;border-radius:20px;height:12px;overflow:hidden}
+.hbar{height:12px;border-radius:20px;min-width:2px;transition:width .25s}
+.hpct{font-size:.67rem;color:var(--muted);width:28px;text-align:right;flex-shrink:0;line-height:1}
+.hbar.ok{background:var(--success)}.hbar.warn{background:var(--warn)}.hbar.bad{background:var(--danger)}
+.hamts{flex:0 1 150px;min-width:80px;text-align:right;font-size:.76rem;white-space:nowrap;overflow:hidden}
+.tbl-wrap{overflow-x:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:.82rem}
+table.dt th{background:var(--surface);padding:7px 9px;text-align:left;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap}
+table.dt td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.dt tr:last-child td{border-bottom:none}
+table.dt tbody tr:hover td{background:var(--surface)}
+table.dt tfoot td{background:var(--surface);font-weight:700;border-top:2px solid var(--border);border-bottom:none}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 15px;border-radius:6px;border:none;cursor:pointer;font-size:.83rem;font-weight:500;line-height:1;transition:opacity .1s,transform .08s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dk)}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{opacity:.88}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{opacity:.85}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{background:#f1f5f9;color:var(--text)}
+.btn-sm{padding:4px 10px;font-size:.75rem}
+.btn-xs{padding:2px 7px;font-size:.7rem}
+.fbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:12px;position:sticky;top:50px;z-index:30;background:var(--bg);padding:8px 0 6px;margin-top:-4px}
+.fbar select,.fbar input{padding:5px 7px;border:1px solid var(--border);border-radius:5px;font-size:.79rem;background:var(--input-bg);color:var(--text)}
+.fbar input[type=search]{min-width:120px;flex:1 1 120px}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 9px;border:1px solid var(--border);border-radius:5px;font-size:.87rem;background:var(--input-bg);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+.fg input:focus,.fg select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.22)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+#mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;backdrop-filter:blur(2px)}
+#mbg.open{display:block}
+#mdl{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:12px;z-index:101;width:min(580px,96vw);max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.26)}
+#mdl.open{display:block}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--border)}
+.mhdr h3{font-size:.97rem;font-weight:700}
+.mclose{background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted);line-height:1;padding:3px}
+.mclose:hover{color:var(--text)}
+.mbody{padding:18px}
+.mfoot{padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.chip,.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700;letter-spacing:.02em;line-height:1.6;white-space:nowrap}
+.chip-exp,.badge-red{background:#fee2e2;color:#991b1b}
+.chip-ref,.badge-green{background:#d1fae5;color:#065f46}
+.chip-card,.badge-blue{background:#e0e7ff;color:#3730a3}
+.chip-pay,.badge-purple{background:#f3e8ff;color:#6b21a8}
+.badge-amber{background:#fef3c7;color:#92400e}
+.badge-neutral{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.cc-panel{border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.cc-hdr{background:var(--navy);color:#fff;padding:11px 15px;display:flex;align-items:center;justify-content:space-between}
+.cc-name{font-weight:700;font-size:.92rem}
+.cc-body{padding:10px 15px;max-height:320px;overflow-y:auto}
+.cc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 6px 8px 10px;border-bottom:1px solid var(--border);border-left:3px solid transparent;font-size:.79rem;gap:8px;transition:background .12s}
+.cc-row:hover{background:var(--surface)}
+.cc-credit{border-left-color:var(--success)}
+.cc-row:last-of-type{border-bottom:none}
+.cc-total{display:flex;align-items:center;justify-content:space-between;padding:9px 0 5px;border-top:2px solid var(--border);font-weight:700;margin-top:4px}
+.cc-foot{padding:9px 15px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.paid-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;background:#d1fae5;color:#065f46;border-radius:20px;font-size:.67rem;font-weight:700;letter-spacing:.02em}
+.bill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:11px}
+.bill-tile{border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;cursor:pointer;box-shadow:var(--sh-sm);transition:box-shadow .15s,border-color .15s}
+.bill-tile:hover{box-shadow:var(--sh-lg);border-color:#c7d2fe}
+.bill-name{font-weight:600;font-size:.87rem;margin-bottom:6px}
+.bill-row{display:flex;justify-content:space-between;font-size:.77rem;margin-bottom:2px}
+.backbtn{background:none;border:none;color:var(--primary);cursor:pointer;font-size:.83rem;font-weight:600;display:inline-flex;align-items:center;gap:5px;margin-bottom:11px;padding:0}
+.backbtn:hover{text-decoration:underline}
+.setup-brow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.setup-brow:last-child{border-bottom:none}
+.iinp{border:none;border-bottom:2px solid var(--primary);background:transparent;font-size:inherit;font-weight:inherit;color:inherit;outline:none;width:130px;text-align:right}
+.edh{cursor:pointer;border-bottom:2px dashed var(--border);padding-bottom:1px}
+.edh:hover{border-bottom-color:var(--primary)}
+.c-green{color:#16a34a}.c-red{color:#dc2626}.c-warn{color:#d97706}.c-muted{color:var(--muted)}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+@media(max-width:640px){.frow,.frow3{grid-template-columns:1fr}.sum-row{grid-template-columns:1fr 1fr}.hlbl{flex-basis:90px}.hamts{flex-basis:100px}#app{padding:10px 8px 84px}.ntab{display:none}#bottom-nav{display:block}}
+/* sum-tile accent borders */
+.sum-tile-green{border-left:3px solid var(--success);padding-left:11px}
+.sum-tile-red{border-left:3px solid var(--danger);padding-left:11px}
+.sum-tile-blue{border-left:3px solid var(--primary);padding-left:11px}
+.sum-tile-amber{border-left:3px solid var(--warn);padding-left:11px}
+/* bill tile status */
+.bill-tile-paid{border-color:#86efac;background:#f0fdf4}
+.bill-tile-over{border-color:#fca5a5;background:#fef2f2}
+/* mobile bottom nav */
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy);box-shadow:0 -2px 8px rgba(0,0,0,.4);z-index:50;padding:4px 0 env(safe-area-inset-bottom,4px)}
+.bnav-inner{display:flex;overflow-x:auto;scrollbar-width:none}
+.bnav-inner::-webkit-scrollbar{display:none}
+.btab{flex:0 0 auto;background:none;border:none;color:#94a3b8;padding:4px 10px 2px;cursor:pointer;font-size:.58rem;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:1px;text-transform:uppercase;letter-spacing:.04em;min-width:56px;transition:color .1s}
+.btab-ico{font-size:1.15rem;line-height:1.2}
+.btab.on{color:#fff}.btab:hover{color:#e2e8f0}
+/* dashboard panel tab switcher (mobile only) */
+.dash-panel-tabs{display:none;background:var(--surface);border-radius:8px;padding:3px;gap:3px;margin-bottom:12px}
+.dash-ptab{flex:1;background:none;border:none;padding:6px 12px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s}
+.dash-ptab.on{background:var(--card);color:var(--text);box-shadow:var(--sh-sm)}
+@media(max-width:640px){.dash-panel-tabs{display:flex}.display-mobile-none{display:none!important}}
+/* monthly breakdown bar */
+.mo-bar-w{width:90px;background:#e2e8f0;border-radius:20px;height:8px;overflow:hidden;display:inline-block;vertical-align:middle}
+/* empty states */
+.empty-state{text-align:center;color:var(--muted);padding:28px 16px;font-size:.83rem;line-height:1.5}
+/* dashboard hero */
+.dash-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 100%);border-radius:14px;padding:24px 28px 20px;margin-bottom:16px;color:#fff;position:relative;overflow:hidden}
+.dash-hero::before{content:'';position:absolute;top:-50px;right:-30px;width:200px;height:200px;background:rgba(99,102,241,.18);border-radius:50%;pointer-events:none}
+.dash-hero::after{content:'';position:absolute;bottom:-50px;right:80px;width:130px;height:130px;background:rgba(99,102,241,.1);border-radius:50%;pointer-events:none}
+.hero-label{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.55);margin-bottom:6px}
+.hero-val{font-size:2.6rem;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-bottom:10px}
+.hero-sub{font-size:.77rem;color:rgba(255,255,255,.6);display:flex;gap:18px;flex-wrap:wrap}
+.hero-sub b{color:rgba(255,255,255,.9);font-weight:600}
+.hero-actions{position:absolute;top:16px;right:16px;display:flex;gap:6px}
+.hero-actions select option{color:#0f172a;background:#fff}
+/* charts */
+.chart-row{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;margin-bottom:4px}
+.chart-legend{display:flex;flex-direction:column;gap:6px;font-size:.73rem}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0}
+/* page transition */
+@keyframes pgFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pg-fade{animation:pgFade .15s ease-out}
+/* skeleton */
+@keyframes skelPulse{0%,100%{opacity:1}50%{opacity:.5}}
+.skel{background:var(--border);border-radius:var(--r);animation:skelPulse 1.4s ease-in-out infinite}
+.skel-hero{height:140px;margin-bottom:16px;border-radius:14px}
+.skel-tile{height:80px}
+.skel-card{height:220px;margin-top:8px}
+/* mobile table-as-cards */
+@media(max-width:640px){
+  table.dt.tbl-mobile thead{display:none}
+  table.dt.tbl-mobile tbody tr{display:block;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;background:var(--card);box-shadow:var(--sh-sm)}
+  table.dt.tbl-mobile tbody tr:hover,table.dt.tbl-mobile tbody tr:hover td{background:var(--card)}
+  table.dt.tbl-mobile tbody td{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border:none;border-bottom:1px solid var(--border);font-size:.82rem}
+  table.dt.tbl-mobile tbody td:last-child{border-bottom:none}
+  table.dt.tbl-mobile tbody td[data-label]::before{content:attr(data-label);font-weight:600;font-size:.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;margin-right:8px}
+  .dash-hero{padding:18px 18px 16px}
+  .hero-val{font-size:2rem}
+}
+/* print */
+@media print{
+  #navbar,#bottom-nav,.btn,.fbar,.backbtn,.pg-hdr button,.hero-actions{display:none!important}
+  body{background:#fff;color:#000;font-size:10pt}
+  #app{max-width:100%;padding:0}
+  .card,.sum-tile{box-shadow:none!important;border:1px solid #ddd;page-break-inside:avoid}
+  .dash-hero{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .hbar,.mo-bar-w{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+/* dark mode */
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0a0f1e;--card:#131929;--border:#1e2d45;--text:#f1f5f9;--muted:#94a3b8;--surface:#1a2540;--input-bg:#131929;--sh-sm:0 1px 2px rgba(0,0,0,.4);--sh:0 1px 3px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.3);--sh-lg:0 4px 8px rgba(0,0,0,.4),0 16px 40px rgba(0,0,0,.35)}
+  .al-danger{background:#450a0a;border-color:#7f1d1d;color:#fca5a5}
+  .al-warn{background:#3f1500;border-color:#7c2d12;color:#fed7aa}
+  .acct-tile.neg{border-color:#7f1d1d;background:#450a0a}
+  .bill-tile-paid{background:#052e16;border-color:#166534}
+  .bill-tile-over{background:#450a0a;border-color:#7f1d1d}
+  .bill-tile:hover{border-color:#4f46e5}
+  .hbar-w,.mo-bar-w{background:#1e2d45}
+  .sum-tile-green{border-left-color:#34d399}
+  .sum-tile-red{border-left-color:#f87171}
+  .sum-tile-blue{border-left-color:#818cf8}
+  .sum-tile-amber{border-left-color:#fbbf24}
+  .badge-green,.chip-ref{background:#064e3b;color:#6ee7b7}
+  .badge-red,.chip-exp{background:#450a0a;color:#fca5a5}
+  .badge-blue,.chip-card{background:#1e1b4b;color:#a5b4fc}
+  .badge-purple,.chip-pay{background:#2e1065;color:#d8b4fe}
+  .paid-badge{background:#064e3b;color:#6ee7b7}
+  .skel{background:var(--border)}
+  .dash-hero{background:linear-gradient(135deg,#020617 0%,#0f0b2d 100%)}
+}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="app"></main>
+<div id="bottom-nav"></div>
+<div id="mbg" onclick="closeModal()"></div>
+<div id="mdl"></div>
+<script>
+'use strict';
+/* ── SEED (blank — the app starts empty; import a JSON backup to load data) ── */
+const SEED={"version": 5, "cfg": {"chrisPay": 0, "sarahPay": 0, "criticalBills": 0, "emergencyFund": 0, "openingBalance": 0}, "buckets": [], "transactions": [], "paychecks": [], "accounts": [], "cardPayments": [], "allocations": []};
+
+/* ── STATE ──────────────────────────────────────────────────────── */
+const LS='familyBudget5';
+let db={};
+let V={tab:'dashboard',drillId:null,dashMonth:null,dashPanel:'health',alertsHidden:false,
+  txF:{mo:'',bkt:'',who:'',typ:'',crd:'',q:''},ccCard:'amazon'};
+let _eTxId=null,_ePcId=null,_eBktId=null,_eAcctId=null;
+
+/* ── PERSIST ────────────────────────────────────────────────────── */
+function dbSave(){localStorage.setItem(LS,JSON.stringify(db));}
+function dbLoad(){try{return JSON.parse(localStorage.getItem(LS));}catch{return null;}}
+function dc(x){return JSON.parse(JSON.stringify(x));}
+/* rolling daily safety snapshots — one per day, keep last 7 */
+function getSnaps(){try{return JSON.parse(localStorage.getItem(LS+'_snaps'))||[];}catch{return[];}}
+function snapshot(){
+  try{
+    const snaps=getSnaps(),d=today();
+    if(snaps[0]?.date===d)return;
+    snaps.unshift({date:d,data:JSON.stringify(db)});
+    while(snaps.length>7)snaps.pop();
+    localStorage.setItem(LS+'_snaps',JSON.stringify(snaps));
+  }catch{}
+}
+function restoreSnap(i){
+  const s=getSnaps()[i];if(!s)return;
+  if(!confirm(`Restore the automatic snapshot from ${fdate(s.date)}?\nAll current data will be replaced.`))return;
+  db=JSON.parse(s.data);dbSave();render();alert('Snapshot restored.');
+}
+function backupOverdueDays(){
+  if(!db.cfg.lastExport)return Infinity;
+  return Math.floor((new Date()-new Date(db.cfg.lastExport+'T00:00:00'))/864e5);
+}
+
+/* ── ICONS ──────────────────────────────────────────────────────── */
+const ICONS={
+  home:`<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>`,
+  list:`<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`,
+  layers:`<polygon points="12,2 2,7 12,12 22,7"/><polyline points="2,17 12,22 22,17"/><polyline points="2,12 12,17 22,12"/>`,
+  receipt:`<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1z"/><line x1="16" y1="8" x2="8" y2="8"/><line x1="16" y1="12" x2="8" y2="12"/><line x1="12" y1="16" x2="8" y2="16"/>`,
+  creditCard:`<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>`,
+  banknote:`<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>`,
+  landmark:`<line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12,2 20,7 4,7"/>`,
+  archive:`<polyline points="21,8 21,21 3,21 3,8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>`,
+  settings:`<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`,
+  printer:`<polyline points="6,9 6,2 18,2 18,9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>`,
+  trendingUp:`<polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/><polyline points="17,6 23,6 23,12"/>`,
+  arrowLeft:`<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/>`,
+  check:`<polyline points="20,6 9,17 4,12"/>`,
+  alertTriangle:`<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+  lock:`<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`,
+};
+function ico(name,sz=16){
+  return`<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0">${ICONS[name]||''}</svg>`;
+}
+
+/* ── CHARTS ─────────────────────────────────────────────────────── */
+function donutChart(segments,size=120,stroke=22){
+  const total=segments.reduce((s,d)=>s+d.v,0);
+  if(!total)return'';
+  const r=(size-stroke)/2,cx=size/2,cy=size/2,circ=2*Math.PI*r;
+  let off=circ*0.25;
+  const arcs=segments.map(d=>{
+    const dash=circ*(d.v/total);
+    const arc=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.c}" stroke-width="${stroke}" stroke-dasharray="${dash.toFixed(2)} ${(circ-dash).toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}"/>`;
+    off-=dash;return arc;
+  });
+  return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">${arcs.join('')}</svg>`;
+}
+function monthlyBars(yr){
+  const mos=Array.from({length:cmo()},(_,i)=>{
+    const mo=i+1;
+    const inc=(db.paychecks||[]).filter(p=>{const d=new Date(p.date+'T00:00:00');return d.getMonth()+1===mo&&d.getFullYear()===yr;}).reduce((s,p)=>s+p.amount,0)
+      +db.transactions.filter(t=>t.type==='income'&&(()=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===mo&&d.getFullYear()===yr;})()).reduce((s,t)=>s+t.amount,0);
+    const exp=db.transactions.filter(t=>t.type==='expense'&&(()=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===mo&&d.getFullYear()===yr;})()).reduce((s,t)=>s+t.amount,0);
+    return{lbl:MO[i].slice(0,3),inc,exp};
+  });
+  const maxV=Math.max(...mos.map(m=>Math.max(m.inc,m.exp)),1);
+  const W=440,H=100,bot=16,bw=14,gap=4;
+  const slot=(W-20)/mos.length;
+  let bars='';
+  mos.forEach((m,i)=>{
+    const x=10+i*slot;
+    const iH=Math.max(2,Math.round((m.inc/maxV)*(H-bot)));
+    const eH=Math.max(2,Math.round((m.exp/maxV)*(H-bot)));
+    bars+=`<rect x="${x}" y="${H-bot-iH}" width="${bw}" height="${iH}" fill="#34d399" rx="2" opacity=".9"/>`;
+    bars+=`<rect x="${x+bw+gap}" y="${H-bot-eH}" width="${bw}" height="${eH}" fill="#f87171" rx="2" opacity=".9"/>`;
+    bars+=`<text x="${x+bw}" y="${H-2}" text-anchor="middle" font-size="7.5" fill="#94a3b8" font-family="inherit">${m.lbl}</text>`;
+  });
+  return`<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}</svg>`;
+}
+
+/* ── UTILS ──────────────────────────────────────────────────────── */
+function uid(){return 'x'+Math.random().toString(36).slice(2,10);}
+function $f(n){const a=Math.abs(+n||0);return '$'+a.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function $s(n){return(+n<0?'−':'')+$f(n);}
+function $pm(n){return(+n>0?'+':+n<0?'−':'')+'$'+Math.abs(+n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fdate(s){if(!s)return'';const[y,m,d]=s.split('-');return MO[+m-1]+' '+(+d)+', '+y;}
+function today(){return new Date().toISOString().slice(0,10);}
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function cmo(){return+(db.cfg&&db.cfg.month)||new Date().getMonth()+1;}
+function cyr(){return+(db.cfg&&db.cfg.year)||new Date().getFullYear();}
+function bname(id){return(db.buckets||[]).find(b=>b.id===id)?.name||id;}
+function acctName(id){const a=(db.accounts||[]).find(x=>x.id===id);return a?`${a.bank} ${a.name}`:'';}
+function bkt(id){return(db.buckets||[]).find(b=>b.id===id);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+const DEFAULT_CARDS=[{id:'amazon',label:'Amazon'},{id:'chase',label:'Chase'},{id:'lowes',label:"Lowe's"},{id:'macys',label:"Macy's"}];
+function getCards(){return Array.isArray(db.cards)?db.cards:DEFAULT_CARDS;}
+function cardLabel(id){const c=getCards().find(c=>c.id===id);return c?c.label:id;}
+
+/* ── CALCULATIONS ───────────────────────────────────────────────── */
+function netSpent(bucketId,mo,yr){
+  let exp=0,ref=0;
+  const year=yr??cyr();
+  for(const t of db.transactions){
+    if(t.bucket!==bucketId)continue;
+    const d=new Date(t.date+'T00:00:00');
+    if(d.getFullYear()!==year)continue;
+    if(mo!=null&&d.getMonth()+1!==mo)continue;
+    if(t.type==='expense')exp+=t.amount;else ref+=t.amount;
+  }
+  return exp-ref;
+}
+
+function allocTot(bucketId,mo,yr){
+  let s=0;const year=yr??cyr();
+  for(const a of(db.allocations||[])){
+    if(bucketId!=null&&a.bucket!==bucketId)continue;
+    const d=new Date(a.date+'T00:00:00');
+    if(d.getFullYear()!==year)continue;
+    if(mo!=null&&d.getMonth()+1!==mo)continue;
+    s+=a.amount;
+  }
+  return s;
+}
+function pcExpected(who){return who==='Chris'?(+db.cfg.chrisPay||0):(+db.cfg.sarahPay||0);}
+function pcDelta(p){if(p.kind==='other')return 0;const e=pcExpected(p.who);return e>0?p.amount-e:0;}
+function pcSurplus(p){return Math.max(0,pcDelta(p));}
+function pcAllocated(pcId){return(db.allocations||[]).filter(a=>a.pcId===pcId).reduce((s,a)=>s+a.amount,0);}
+function surplusYtd(yr){const y=yr??cyr();return(db.paychecks||[]).filter(p=>new Date(p.date+'T00:00:00').getFullYear()===y).reduce((s,p)=>s+pcSurplus(p),0);}
+function pcUnreconciled(){
+  const y=cyr();let over=0,under=0;
+  for(const p of(db.paychecks||[])){
+    if(new Date(p.date+'T00:00:00').getFullYear()!==y)continue;
+    const left=pcDelta(p)-pcAllocated(p.id);
+    if(left>0.005)over+=left;else if(left<-0.005)under-=left;
+  }
+  return{over,under};
+}
+
+function bstats(b,viewMo){
+  if(viewMo==null){
+    const acc=b.monthly*cmo()+allocTot(b.id,null,cyr()),sp=netSpent(b.id,null,cyr()),bal=acc-sp;
+    const pct=acc>0?Math.min(200,(sp/acc)*100):(sp>0?200:0);
+    return{acc,sp,bal,pct};
+  }else{
+    const acc=b.monthly+allocTot(b.id,+viewMo,cyr()),sp=netSpent(b.id,+viewMo,cyr()),bal=acc-sp;
+    const pct=acc>0?Math.min(200,(sp/acc)*100):(sp>0?200:0);
+    return{acc,sp,bal,pct};
+  }
+}
+
+function cardBal(card,mo,yr){
+  return db.transactions.filter(t=>{
+    if(t.card!==card||t.type==='cc_payment')return false;
+    const d=new Date(t.date+'T00:00:00');
+    return d.getMonth()+1===mo&&d.getFullYear()===yr;
+  }).reduce((s,t)=>s+(t.type==='expense'?t.amount:-t.amount),0);
+}
+
+function cardTxs(card,mo,yr){
+  return db.transactions.filter(t=>{
+    if(t.card!==card||t.type==='cc_payment')return false;
+    const d=new Date(t.date+'T00:00:00');
+    return d.getMonth()+1===mo&&d.getFullYear()===yr;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+function cardOutstanding(card){
+  let s=0;
+  for(const t of db.transactions){
+    if(t.card!==card)continue;
+    if(t.type==='cc_payment')s-=t.amount;
+    else if(t.type==='expense')s+=t.amount;
+    else s-=t.amount;
+  }
+  return Math.round(s*100)/100;
+}
+function cardsOwed(){
+  let s=+(db.cfg.pendingAmex)||0;
+  for(const c of getCards())s+=cardOutstanding(c.id);
+  return Math.round(s*100)/100;
+}
+function acctTot(){return(db.accounts||[]).reduce((s,a)=>s+a.balance,0);}
+function ytdTot(type){
+  const yr=cyr();
+  return db.transactions.filter(t=>t.type===type&&new Date(t.date+'T00:00:00').getFullYear()===yr).reduce((s,t)=>s+t.amount,0);
+}
+function bktTxs(id,mo,yr){
+  return db.transactions.filter(t=>{
+    if(t.bucket!==id)return false;
+    const d=new Date(t.date+'T00:00:00');
+    if(yr!=null&&d.getFullYear()!==yr)return false;
+    if(mo!=null&&d.getMonth()+1!==mo)return false;
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+/* ── RENDER ─────────────────────────────────────────────────────── */
+function render(){navR();pageR();}
+function navR(){
+  const tabs=[
+    ['dashboard','Dashboard','home','Home'],
+    ['transactions','Transactions','list','Trans'],
+    ['buckets','Buckets','layers','Buckets'],
+    ['bills','Bills','receipt','Bills'],
+    ['cards','Credit Cards','creditCard','Cards'],
+    ['paychecks','Paychecks','banknote','Pay'],
+    ['accounts','Accounts','landmark','Accounts'],
+    ['backup','Backup/Import','archive','Backup'],
+    ['setup','Setup','settings','Setup']
+  ];
+  document.getElementById('navbar').innerHTML=`<div class="nav-inner"><span class="nav-brand">${ico('trendingUp',15)} BudgetLock</span>${
+    tabs.map(([id,lbl,icon])=>`<button class="ntab${V.tab===id?' on':''}" onclick="go('${id}')">${ico(icon,13)} ${lbl}</button>`).join('')
+  }${db.cfg&&db.cfg.passHash?`<button class="ntab" style="margin-left:auto" onclick="lockApp()" title="Lock the app">${ico('lock',13)} Lock</button>`:''}</div>`;
+  const bn=document.getElementById('bottom-nav');
+  if(bn)bn.innerHTML=`<div class="bnav-inner">${
+    tabs.map(([id,,icon,short])=>`<button class="btab${V.tab===id?' on':''}" onclick="go('${id}')"><span class="btab-ico">${ico(icon,20)}</span><span>${short}</span></button>`).join('')
+  }${db.cfg&&db.cfg.passHash?`<button class="btab" onclick="lockApp()"><span class="btab-ico">${ico('lock',20)}</span><span>Lock</span></button>`:''}</div>`;
+}
+function go(tab,drill){V.tab=tab;V.drillId=drill??null;render();}
+function setDashPanel(p){V.dashPanel=p;pageR();}
+function showSkeleton(){
+  const el=document.getElementById('app');
+  el.innerHTML=`<div class="skel skel-hero"></div><div class="sum-row">${Array(5).fill('<div class="skel skel-tile"></div>').join('')}</div><div class="skel skel-card"></div>`;
+}
+function pageR(){
+  const el=document.getElementById('app');
+  el.classList.remove('pg-fade');
+  switch(V.tab){
+    case'dashboard':el.innerHTML=pgDash();break;
+    case'transactions':el.innerHTML=pgTx();break;
+    case'buckets':el.innerHTML=V.drillId?pgDrill(V.drillId):pgBuckets();break;
+    case'bills':el.innerHTML=V.drillId?pgDrill(V.drillId):pgBills();break;
+    case'cards':el.innerHTML=pgCards();break;
+    case'paychecks':el.innerHTML=pgPay();break;
+    case'accounts':el.innerHTML=pgAccounts();break;
+    case'backup':el.innerHTML=pgBackup();break;
+    case'setup':el.innerHTML=pgSetup();break;
+    default:el.innerHTML=pgDash();
+  }
+  void el.offsetHeight;
+  el.classList.add('pg-fade');
+  setTimeout(initSwipeRows,60);
+}
+
+function toggleAlerts(){V.alertsHidden=!V.alertsHidden;render();}
+
+/* ── PAGE: DASHBOARD ────────────────────────────────────────────── */
+function pgDash(){
+  const mo=cmo(),yr=cyr(),dm=V.dashMonth;
+  const badA=(db.accounts||[]).filter(a=>a.balance<0);
+  const badB=db.buckets.filter(b=>bstats(b,null).bal<-0.01);
+  const{over:unOver,under:unUnder}=pcUnreconciled();
+  const bkDays=backupOverdueDays(),bkDue=bkDays>7;
+  let alerts='';
+  const nAlerts=badA.length+badB.length+(unOver>1?1:0)+(unUnder>1?1:0)+(bkDue?1:0);
+  if(nAlerts){
+    const hidden=V.alertsHidden;
+    alerts=`<div class="alerts-wrap">
+      <div class="alerts-hdr">
+        <span style="font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Alerts (${nAlerts})</span>
+        <button class="btn btn-ghost btn-sm" onclick="toggleAlerts()">${hidden?'Show alerts':'Hide alerts'}</button>
+      </div>`;
+    if(!hidden){
+      alerts+='<div class="alerts">';
+      for(const a of badA)alerts+=`<div class="alert al-danger">${ico('alertTriangle',15)} <div><strong>${esc(a.bank)} ${esc(a.name)}</strong> is overdrawn: <strong>${$s(a.balance)}</strong></div></div>`;
+      for(const b of badB){const s=bstats(b,null);alerts+=`<div class="alert al-warn">${ico('alertTriangle',15)} <div><strong>${esc(b.name)}</strong> over budget YTD by <strong>${$f(Math.abs(s.bal))}</strong></div></div>`;}
+      if(unOver>1)alerts+=`<div class="alert al-warn" onclick="go('paychecks')" style="cursor:pointer">${ico('alertTriangle',15)} <div><strong>${$f(unOver)}</strong> of extra paycheck money isn't in any bucket yet — click to allocate it</div></div>`;
+      if(unUnder>1)alerts+=`<div class="alert al-warn" onclick="go('paychecks')" style="cursor:pointer">${ico('alertTriangle',15)} <div>Paychecks came in <strong>${$f(unUnder)}</strong> short and buckets haven't been reduced to match — click to reconcile</div></div>`;
+      if(bkDue)alerts+=`<div class="alert al-warn" onclick="go('backup')" style="cursor:pointer">${ico('alertTriangle',15)} <div>Backup overdue — ${db.cfg.lastExport?`last export was <strong>${bkDays} days ago</strong>`:'<strong>never backed up</strong>'}. Click to export (data only lives in this browser)</div></div>`;
+      alerts+='</div>';
+    }
+    alerts+='</div>';
+  }
+  const pcInc=(db.paychecks||[]).filter(p=>new Date(p.date+'T00:00:00').getFullYear()===yr).reduce((s,p)=>s+p.amount,0);
+  const inc=ytdTot('income')+pcInc,exp=ytdTot('expense'),net=inc-exp,tot=acctTot(),ef=+(db.cfg.emergencyFund)||0;
+  const ob=acctObTotal();
+  const expTot=ob+inc-exp,recon=expTot-tot;
+  const pendingAmex=+(db.cfg.pendingAmex)||0,onCards=cardsOwed(),unexpl=Math.round((recon+onCards)*100)/100,adjTot=tot-onCards;
+  // Spending pace
+  const _tnow=new Date(),_dayOfMo=_tnow.getDate(),_daysInMo=new Date(yr,mo,0).getDate();
+  const _moExp=db.transactions.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===mo&&d.getFullYear()===yr&&t.type==='expense';}).reduce((s,t)=>s+t.amount,0);
+  const _pace=(_dayOfMo>0&&mo===new Date().getMonth()+1&&yr===new Date().getFullYear())?Math.round(_moExp/_dayOfMo*_daysInMo):null;
+  // MoM delta (this month vs prior month expenses)
+  const _prMo=mo===1?12:mo-1,_prYr=mo===1?yr-1:yr;
+  const _prExp=db.transactions.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===_prMo&&d.getFullYear()===_prYr&&t.type==='expense';}).reduce((s,t)=>s+t.amount,0);
+  const _expDelta=_moExp-_prExp;
+  const typeLabelsD={accrual:'Accrual',bills:'Bills',spending:'Spending',savings:'Savings'};
+  const acctsH=(db.accounts||[]).map(a=>{
+    const buf=+(a.buffer)||0,avail=a.balance-buf;
+    const heroAmt=buf>0?avail:a.balance,heroNeg=heroAmt<0;
+    return`<div class="acct-tile${heroNeg?' neg':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div class="acct-bank">${esc(a.bank)}</div><div class="acct-name">${esc(a.name)}</div></div>
+        ${a.bucketType?`<span class="badge badge-neutral" style="font-size:.58rem;margin-top:2px">${typeLabelsD[a.bucketType]||a.bucketType}</span>`:''}
+      </div>
+      <div class="acct-avail${heroNeg?' c-red':''} edh" onclick="editAcctBal('${a.id}')" id="ab-${a.id}" title="${buf>0?'Available (balance − buffer) — click to edit balance':'Click to edit balance'}">${$s(heroAmt)}</div>
+      ${buf>0?`<div style="display:flex;justify-content:space-between;font-size:.67rem;color:var(--muted);margin-top:3px"><span>Balance <strong class="${a.balance<0?'c-red':''}">${$s(a.balance)}</strong></span><span>Buffer <strong>${$f(buf)}</strong></span></div>`:''}
+    </div>`;}).join('');
+  // Fund summary table (accounts with bucketType)
+  const fundRows=(db.accounts||[]).filter(a=>a.bucketType).map(a=>{
+    const bkts=db.buckets.filter(b=>b.type===a.bucketType);
+    let totAcc=0,totSp=0;
+    for(const b of bkts){const s=bstats(b,null);totAcc+=s.acc;totSp+=s.sp;}
+    const bucketBal=totAcc-totSp,buf=+(a.buffer)||0,avail=a.balance-buf;
+    const variance=avail-bucketBal;
+    return`<tr>
+      <td><strong>${esc(a.bank)}</strong><br><span class="c-muted" style="font-size:.74rem">${typeLabelsD[a.bucketType]||a.bucketType}</span></td>
+      <td style="text-align:right" class="${a.balance<0?'c-red':''}">${$s(a.balance)}</td>
+      <td style="text-align:right" class="c-muted">${buf>0?$f(buf):'—'}</td>
+      <td style="text-align:right" class="${avail<0?'c-red':avail<buf?'c-warn':''}">${$s(avail)}</td>
+      <td style="text-align:right" class="${bucketBal<0?'c-red':'c-green'}">${$s(bucketBal)}</td>
+      <td style="text-align:right" class="${Math.abs(variance)<1?'c-muted':variance<0?'c-red':'c-green'}" title="Available (Balance − Buffer) − Bucket Balance. Zero means account and budget are in sync.">${variance>0?'+':''}${$s(variance)}</td>
+    </tr>`;}).join('');
+  const groups=[{label:'Accrual / Long-term',type:'accrual'},{label:'Spending',type:'spending'},{label:'Long-term Savings',type:'savings'},{label:'Bills',type:'bills'}];
+  let healthH='';
+  for(const g of groups){
+    const bkts=db.buckets.filter(b=>b.type===g.type&&b.monthly>0);
+    if(!bkts.length)continue;
+    healthH+=`<div class="hgroup"><div class="hgroup-title">${g.label}</div>`;
+    for(const b of bkts){
+      const s=bstats(b,dm),cls=s.bal<0?'bad':s.pct>80?'warn':'ok',w=Math.min(100,Math.max(0,s.pct));
+      healthH+=`<div class="hrow" onclick="go('${b.type==='bills'?'bills':'buckets'}','${b.id}')">
+        <div class="hlbl" title="${esc(b.name)}">${esc(b.name)}</div>
+        <div class="hbar-w"><div class="hbar ${cls}" style="width:${w}%"></div></div>
+        <div class="hpct">${Math.round(s.pct)}%</div>
+        <div class="hamts"><span class="${s.bal<0?'c-red':'c-green'}">${$s(s.bal)}</span> <span class="c-muted">/ ${$f(s.acc)}</span></div>
+      </div>`;
+    }
+    healthH+='</div>';
+  }
+  const moOpts=Array.from({length:mo},(_,i)=>`<option value="${i+1}"${dm===i+1?' selected':''}>${MO[i]}</option>`).join('');
+  const recent=[...db.transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15);
+  const recR=recent.map(t=>{const isE=t.type==='expense',isCCP=t.type==='cc_payment';return`<tr>
+    <td data-label="Date" style="white-space:nowrap">${fdate(t.date)}</td>
+    <td data-label="Who">${t.who&&t.who!=='imported'?esc(t.who):'<span class="c-muted">—</span>'}</td>
+    <td data-label="Amount" class="${isE||isCCP?'c-red':'c-green'}" style="text-align:right;font-weight:600">${isE||isCCP?'−':'+'}${$f(t.amount)}</td>
+    <td data-label="Bucket">${isCCP?`<span class="badge badge-purple">CC Pay</span>`:esc(bname(t.bucket))}</td>
+    <td data-label="Notes" class="c-muted" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.desc||'')}</td>
+  </tr>`;}).join('');
+  /* spending donut data */
+  const spendByCat=[
+    {lbl:'Accrual',v:db.buckets.filter(b=>b.type==='accrual').reduce((s,b)=>{const st=bstats(b,null);return s+st.sp;},0),c:'#818cf8'},
+    {lbl:'Bills',v:db.buckets.filter(b=>b.type==='bills').reduce((s,b)=>{const st=bstats(b,null);return s+st.sp;},0),c:'#f87171'},
+    {lbl:'Spending',v:db.buckets.filter(b=>b.type==='spending').reduce((s,b)=>{const st=bstats(b,null);return s+st.sp;},0),c:'#fb923c'},
+    {lbl:'Savings',v:db.buckets.filter(b=>b.type==='savings').reduce((s,b)=>{const st=bstats(b,null);return s+st.sp;},0),c:'#34d399'},
+  ].filter(d=>d.v>0);
+  const donut=donutChart(spendByCat,120,20);
+  const legend=spendByCat.map(d=>`<div style="display:flex;align-items:center"><span class="legend-dot" style="background:${d.c}"></span><span class="c-muted">${d.lbl}</span><span style="margin-left:auto;padding-left:12px;font-weight:600">${$f(d.v)}</span></div>`).join('');
+  return`${alerts}
+  <div class="dash-hero">
+    <div class="hero-actions">
+      <select style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:6px;font-size:.77rem;background:rgba(255,255,255,.1);color:#fff;backdrop-filter:blur(4px)" onchange="setMonth(+this.value)">
+        ${Array.from({length:12},(_,i)=>`<option value="${i+1}"${mo===i+1?' selected':''}>${MO[i]} ${yr}</option>`).join('')}
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="window.print()" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2)">${ico('printer',13)} Print</button>
+    </div>
+    <div class="hero-label">Total Available</div>
+    <div class="hero-val">${$s(adjTot)}</div>
+    <div class="hero-sub">
+      <span>${ico('trendingUp',13)} Net YTD <b>${$s(net)}</b></span>
+      <span>Expected <b>${$s(expTot)}</b></span>
+      <span>Actual <b>${$s(tot)}</b></span>
+      ${_pace!==null?`<span style="color:rgba(255,255,255,.7)">Pace: <b style="color:#fff">${$f(_pace)}</b> projected</span>`:''}
+      ${Math.abs(unexpl)<1?`<span style="color:#34d399">${ico('check',13)} Balanced${onCards>0.005?` · ${$f(onCards)} on cards`:''}</span>`:`<span style="color:#f87171">Unexplained ${$s(unexpl)}</span>`}
+    </div>
+  </div>
+  <div class="sum-row">
+    <div class="sum-tile sum-tile-green"><div class="sum-lbl">YTD Income</div><div class="sum-val c-green">${$f(inc)}</div>${pcInc>0?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">incl. ${$f(pcInc)} paychecks</div>`:''}</div>
+    <div class="sum-tile sum-tile-red"><div class="sum-lbl">YTD Expenses</div><div class="sum-val c-red">${$f(exp)}</div>${_prExp>0?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">${MO[mo-1]}: ${$f(_moExp)} <span class="${_expDelta>0?'c-red':'c-green'}">${_expDelta>=0?'↑':'↓'}${$f(Math.abs(_expDelta))}</span> vs ${MO[_prMo-1]}</div>`:''}
+    </div>
+    <div class="sum-tile ${net>=0?'sum-tile-green':'sum-tile-red'}"><div class="sum-lbl">Net YTD</div><div class="sum-val ${net>=0?'c-green':'c-red'}">${$s(net)}</div></div>
+    <div class="sum-tile sum-tile-amber"><div class="sum-lbl">Emergency Fund</div><div class="sum-val edh" onclick="editEFund()" id="ef-disp" title="Click to edit">${$f(ef)}</div></div>
+    <div class="sum-tile sum-tile-amber"><div class="sum-lbl">On Credit Cards</div><div class="sum-val ${onCards>0.005?'c-red':'c-muted'}" title="Tracked card balances plus the manual pending Amex amount — money already spent in the budget but not yet out of the bank">${$f(onCards)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">cards ${$f(onCards-pendingAmex)} · Amex <span class="edh" onclick="editPendingAmex()" id="pamex-disp" title="Click to set pending Amex">${$f(pendingAmex)}</span></div></div>
+    <div class="sum-tile ${Math.abs(unexpl)<1?'sum-tile-green':'sum-tile-red'}"><div class="sum-lbl">Unexplained</div><div class="sum-val ${Math.abs(unexpl)<1?'c-green':'c-red'}" title="Difference (Expected − Actual) plus what's still owed on credit cards. Near zero means every dollar is accounted for; card charges awaiting payment no longer show as drift.">${Math.abs(unexpl)<1?'✓ Balanced':`${unexpl>0?'+':''}${$s(unexpl)}`}</div>${Math.abs(recon)>=0.01?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">difference ${$s(recon)} + cards ${$f(onCards)}</div>`:''}</div>
+  </div>
+  <div class="sum-row">
+    <div class="sum-tile"><div class="sum-lbl">Opening Balance</div><div class="sum-val">${$s(ob)}</div></div>
+    <div class="sum-tile sum-tile-green"><div class="sum-lbl">YTD Paychecks</div><div class="sum-val c-green">${$f(pcInc)}</div></div>
+    <div class="sum-tile sum-tile-blue"><div class="sum-lbl">Expected Total</div><div class="sum-val">${$s(expTot)}</div></div>
+    <div class="sum-tile sum-tile-blue"><div class="sum-lbl">All Accounts</div><div class="sum-val">${$s(tot)}</div></div>
+    <div class="sum-tile sum-tile-green"><div class="sum-lbl">Adjusted Total</div><div class="sum-val ${adjTot<0?'c-red':'c-green'}" title="All Accounts minus everything owed on credit cards">${$s(adjTot)}</div></div>
+  </div>
+  <div class="card"><div class="card-hdr"><h2>Accounts</h2><span class="c-muted" style="font-size:.72rem">Click balance to edit</span></div>
+    <div class="acct-grid">${acctsH}</div></div>
+  ${fundRows?`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Fund Balances</h2><span class="c-muted" style="font-size:.72rem">Variance = Available − Bucket Balance (0 = in sync)</span></div>
+    <div class="tbl-wrap"><table class="dt">
+      <thead><tr><th>Account / Fund</th><th style="text-align:right">Balance</th><th style="text-align:right">Buffer</th><th style="text-align:right">Available</th><th style="text-align:right">Bucket Balance</th><th style="text-align:right">Variance</th></tr></thead>
+      <tbody>${fundRows}</tbody>
+    </table></div></div>`:''}
+  <div class="dash-panel-tabs">
+    <button class="dash-ptab${V.dashPanel==='health'?' on':''}" onclick="setDashPanel('health')">${ico('layers',13)} Bucket Health</button>
+    <button class="dash-ptab${V.dashPanel==='charts'?' on':''}" onclick="setDashPanel('charts')">${ico('trendingUp',13)} Charts</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-bottom:14px">
+    <div class="card" style="margin-bottom:0${V.dashPanel==='charts'?' display-mobile-none':''}"><div class="card-hdr"><h2>Bucket Health</h2>
+      <select onchange="V.dashMonth=this.value?+this.value:null;pageR()" style="padding:4px 7px;border:1px solid var(--border);border-radius:5px;font-size:.77rem">
+        <option value=""${dm==null?' selected':''}>YTD</option>${moOpts}
+      </select></div>${healthH}</div>
+    <div class="card" style="margin-bottom:0${V.dashPanel==='health'?' display-mobile-none':''}"><div class="card-hdr"><h2>YTD Spending by Category</h2></div>
+      ${donut?`<div class="chart-row">${donut}<div class="chart-legend">${legend}</div></div>`:'<div class="empty-state">No spending data yet</div>'}
+      <div style="margin-top:14px"><div class="card-hdr" style="border:none;padding:0;margin-bottom:8px"><h2 style="font-size:.67rem">Monthly Cash Flow</h2>
+        <div style="display:flex;gap:10px;font-size:.67rem;color:var(--muted)"><span><span style="display:inline-block;width:8px;height:8px;background:#34d399;border-radius:50%;margin-right:3px"></span>Income</span><span><span style="display:inline-block;width:8px;height:8px;background:#f87171;border-radius:50%;margin-right:3px"></span>Expense</span></div>
+      </div>${monthlyBars(yr)}</div>
+    </div>
+  </div>
+  <div class="card"><div class="card-hdr"><h2>Recent Transactions</h2>
+    <button class="btn btn-primary btn-sm" onclick="openAddTx()">${ico('plus',13)} Add Transaction</button></div>
+    <div class="tbl-wrap"><table class="dt tbl-mobile">
+      <thead><tr><th>Date</th><th>Who</th><th style="text-align:right">Amount</th><th>Bucket</th><th>Notes</th></tr></thead>
+      <tbody>${recR||'<tr><td colspan="5"><div class="empty-state">No transactions this month</div></td></tr>'}</tbody>
+    </table></div></div>`;
+}
+
+/* ── PAGE: TRANSACTIONS ─────────────────────────────────────────── */
+function pgTx(){
+  const f=V.txF,yr=cyr();
+  let txs=db.transactions.filter(t=>{
+    const d=new Date(t.date+'T00:00:00');
+    if(d.getFullYear()!==yr)return false;
+    if(f.mo&&d.getMonth()+1!==+f.mo)return false;
+    if(f.bkt&&t.bucket!==f.bkt)return false;
+    if(f.who&&t.who!==f.who)return false;
+    if(f.typ&&t.type!==f.typ)return false;
+    if(f.crd!==undefined&&f.crd!==''&&t.card!==f.crd)return false;
+    if(f.q){const ql=f.q.toLowerCase();if(![t.who,t.desc,bname(t.bucket),cardLabel(t.card||'')].some(s=>s&&s.toLowerCase().includes(ql)))return false;}
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+  const mo=cmo();
+  const moOpts='<option value="">All months</option>'+Array.from({length:12},(_,i)=>`<option value="${i+1}"${f.mo==i+1?' selected':''}>${MO[i]}</option>`).join('');
+  const bktOpts='<option value="">All buckets</option>'+db.buckets.map(b=>`<option value="${b.id}"${f.bkt===b.id?' selected':''}>${esc(b.name)}</option>`).join('');
+  const whoOpts='<option value="">All</option>'+['Chris','Sarah','Both'].map(w=>`<option value="${w}"${f.who===w?' selected':''}>${w}</option>`).join('')+`<option value="imported"${f.who==='imported'?' selected':''}>Imported</option>`;
+  const totE=txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const totR=txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totCCP=txs.filter(t=>t.type==='cc_payment').reduce((s,t)=>s+t.amount,0);
+  const rows=txs.map(t=>{
+    const isE=t.type==='expense',isCCP=t.type==='cc_payment';
+    const cLbl=t.card?`<span class="chip chip-card">${cardLabel(t.card)}</span>`:'';
+    const acctName=isCCP&&t.fromAccount?((db.accounts||[]).find(a=>a.id===t.fromAccount)?.name||''):'';
+    return`<tr data-txid="${t.id}">
+      <td data-label="Date" style="white-space:nowrap">${fdate(t.date)}</td>
+      <td data-label="Who">${t.who&&t.who!=='imported'?esc(t.who):'<span class="c-muted">—</span>'}</td>
+      <td data-label="Amount" style="text-align:right;white-space:nowrap"><span class="badge ${isE?'badge-red':isCCP?'badge-purple':'badge-green'}">${isE?'Exp':isCCP?'CC Pay':'Refund'}</span> <span class="${isE||isCCP?'c-red':'c-green'}" style="font-weight:600">${isE||isCCP?'−':'+'}${$f(t.amount)}</span></td>
+      <td data-label="Bucket">${isCCP?`<span class="c-muted" style="font-size:.75rem">${esc(acctName)||'—'}</span>`:esc(bname(t.bucket))}</td>
+      <td data-label="Card">${cLbl}</td>
+      <td data-label="Notes" class="c-muted" style="max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.desc||'')}</td>
+      <td><button class="btn btn-ghost btn-xs" onclick="openEditTx('${t.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delTx('${t.id}')">Del</button></td>
+    </tr>`;}).join('');
+  return`<div class="pg-hdr"><h1>Transactions</h1><button class="btn btn-primary" onclick="openAddTx()">+ Add Transaction</button></div>
+  <div class="fbar">
+    <select onchange="V.txF.mo=this.value;pageR()">${moOpts}</select>
+    <select onchange="V.txF.bkt=this.value;pageR()">${bktOpts}</select>
+    <select onchange="V.txF.who=this.value;pageR()">${whoOpts}</select>
+    <select onchange="V.txF.typ=this.value;pageR()">
+      <option value="">All types</option>
+      <option value="expense"${f.typ==='expense'?' selected':''}>Expense</option>
+      <option value="income"${f.typ==='income'?' selected':''}>Refund</option>
+      <option value="cc_payment"${f.typ==='cc_payment'?' selected':''}>CC Payment</option>
+    </select>
+    <select onchange="V.txF.crd=this.value;pageR()">
+      <option value="">Any card</option>
+      ${getCards().map(({id:c,label:l})=>`<option value="${c}"${f.crd===c?' selected':''}>${l}</option>`).join('')}
+    </select>
+    <input type="search" id="tx-search" placeholder="Search who, notes, bucket…" value="${esc(f.q||'')}" oninput="V.txF.q=this.value;pageR()">
+    <button class="btn btn-ghost btn-sm" onclick="V.txF={mo:'',bkt:'',who:'',typ:'',crd:'',q:''};pageR()">Reset</button>
+  </div>
+  <div style="display:flex;gap:14px;margin-bottom:10px;font-size:.8rem;flex-wrap:wrap">
+    <span><strong>${txs.length}</strong> transactions</span>
+    <span class="c-red">Expenses: <strong>${$f(totE)}</strong></span>
+    <span class="c-green">Refunds: <strong>${$f(totR)}</strong></span>
+    ${totCCP>0?`<span style="color:#7c3aed">CC Payments: <strong>${$f(totCCP)}</strong></span>`:''}
+    <span>Net: <strong class="${totE-totR>0?'c-red':'c-green'}">${$s(totE-totR)}</strong></span>
+  </div>
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table class="dt tbl-mobile">
+    <thead><tr><th>Date</th><th>Who</th><th style="text-align:right">Amount</th><th>Bucket</th><th>Card</th><th>Notes</th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="7"><div class="empty-state">No transactions match the current filters</div></td></tr>'}</tbody>
+  </table></div></div>`;
+}
+
+/* ── PAGE: BUCKETS ──────────────────────────────────────────────── */
+function pgBuckets(){
+  const types=[{k:'accrual',lbl:'Accrual / Long-term'},{k:'spending',lbl:'Spending'},{k:'savings',lbl:'Savings'}];
+  let html=`<div class="pg-hdr"><h1>Buckets</h1><button class="btn btn-primary" onclick="openAddTx()">+ Add Transaction</button></div>`;
+  for(const{k,lbl}of types){
+    const bkts=db.buckets.filter(b=>b.type===k);
+    if(!bkts.length)continue;
+    let tMo=0,tAcc=0,tSp=0,tBal=0;
+    const rows=bkts.map(b=>{
+      const s=bstats(b,null),w=Math.max(0,Math.min(100,s.pct)),cls=s.bal<0?'bad':s.pct>80?'warn':'ok';
+      tMo+=b.monthly;tAcc+=s.acc;tSp+=s.sp;tBal+=s.bal;
+      return`<tr onclick="go('buckets','${b.id}')" style="cursor:pointer">
+        <td>${esc(b.name)}</td>
+        <td style="text-align:right">${$f(b.monthly)}/mo</td>
+        <td style="text-align:right">${$f(s.acc)}</td>
+        <td style="text-align:right">${$f(s.sp)}</td>
+        <td style="text-align:right" class="${s.bal<0?'c-red':'c-green'}">${$s(s.bal)}</td>
+        <td style="width:110px"><div class="hbar-w"><div class="hbar ${cls}" style="width:${w}%"></div></div></td>
+      </tr>`;}).join('');
+    // Find linked account for this bucket type
+    const acct=(db.accounts||[]).find(a=>a.bucketType===k);
+    const acctAvail=acct?(acct.balance-(+(acct.buffer)||0)):null;
+    const acctVariance=acct!=null?acctAvail-tBal:null;
+    const acctNote=acct?`<span style="font-size:.72rem;font-weight:400;color:var(--muted);margin-left:8px">↳ ${esc(acct.bank)} ${esc(acct.name)} avail: <span class="${acctAvail<0?'c-red':''}">${$s(acctAvail)}</span>${Math.abs(acctVariance)<1?` <span class="c-green">✓</span>`:`  <span class="${acctVariance>0?'c-green':'c-red'}">(${acctVariance>0?'+':''}${$s(acctVariance)})</span>`}</span>`:'';
+    html+=`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>${lbl}</h2></div>
+      <div class="tbl-wrap"><table class="dt">
+        <thead><tr><th>Name</th><th style="text-align:right">Monthly</th><th style="text-align:right">YTD Accrued</th><th style="text-align:right">YTD Spent</th><th style="text-align:right">Balance</th><th>Progress</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>
+          <td><strong>Totals</strong>${acctNote}</td>
+          <td style="text-align:right"><strong>${$f(tMo)}/mo</strong></td>
+          <td style="text-align:right"><strong>${$f(tAcc)}</strong></td>
+          <td style="text-align:right"><strong>${$f(tSp)}</strong></td>
+          <td style="text-align:right"><strong class="${tBal<0?'c-red':'c-green'}">${$s(tBal)}</strong></td>
+          <td></td>
+        </tr></tfoot>
+      </table></div></div>`;
+  }
+  return html;
+}
+
+/* ── PAGE: BILLS ────────────────────────────────────────────────── */
+function pgBills(){
+  const mo=cmo(),yr=cyr();
+  const bills=db.buckets.filter(b=>b.type==='bills');
+  let totB=0,totS=0;
+  const eom=new Date(yr,mo,0),daysLeft=Math.ceil((eom-new Date())/864e5);
+  const tiles=bills.map(b=>{
+    const bud=b.monthly+allocTot(b.id,mo,yr),sp=netSpent(b.id,mo,yr),vr=bud-sp;
+    const tileStatus=vr<-0.01?'bill-tile-over':sp>0.01?'bill-tile-paid':'';
+    totB+=bud;totS+=sp;
+    const vc=Math.abs(vr)<0.01?'c-muted':vr<0?'c-red':'c-green';
+    const vsym=vr<0?'−':'+';
+    const dueTag=!tileStatus?(daysLeft<=0?`<span class="badge badge-red" style="font-size:.6rem;float:right">Overdue</span>`:daysLeft<=3?`<span class="badge badge-amber" style="font-size:.6rem;float:right">Due in ${daysLeft}d</span>`:daysLeft<=10?`<span class="badge badge-neutral" style="font-size:.6rem;float:right">${daysLeft}d left</span>`:''):'';
+    return`<div class="bill-tile ${tileStatus}" onclick="go('bills','${b.id}')">
+      <div class="bill-name">${esc(b.name)}${dueTag}</div>
+      <div class="bill-row"><span class="c-muted">Budget</span><span>${$f(bud)}${bud>b.monthly?`<span class="c-green" style="font-size:.68rem"> ↑</span>`:''}</span></div>
+      <div class="bill-row"><span class="c-muted">Paid this month</span><span>${sp>0?$f(sp):'<span class="c-muted">—</span>'}</span></div>
+      ${Math.abs(vr)>0.005?`<div class="bill-row"><span class="c-muted">Variance</span><span class="${vc}" style="font-weight:600">${vsym}${$f(Math.abs(vr))}</span></div>`:''}
+    </div>`;}).join('');
+  return`<div class="pg-hdr"><h1>Bills — ${MO[mo-1]} ${yr}</h1></div>
+  <div class="sum-row" style="margin-bottom:14px">
+    <div class="sum-tile"><div class="sum-lbl">Budget</div><div class="sum-val">${$f(totB)}</div></div>
+    <div class="sum-tile"><div class="sum-lbl">Paid This Month</div><div class="sum-val c-red">${$f(totS)}</div></div>
+    <div class="sum-tile"><div class="sum-lbl">Variance</div><div class="sum-val ${totB-totS>=0?'c-green':'c-red'}">${$pm(totB-totS)}</div></div>
+  </div>
+  <div class="bill-grid">${tiles}</div>`;
+}
+
+/* ── PAGE: DRILL DOWN ───────────────────────────────────────────── */
+function pgDrill(id){
+  const b=bkt(id);
+  if(!b)return'<p>Bucket not found.</p>';
+  const yr=cyr(),s=bstats(b,null);
+  const backTab=b.type==='bills'?'bills':'buckets';
+  const txs=bktTxs(id,null,yr);
+  const rows=txs.map(t=>{const isE=t.type==='expense';return`<tr>
+    <td data-label="Date" style="white-space:nowrap">${fdate(t.date)}</td>
+    <td data-label="Who">${t.who&&t.who!=='imported'?esc(t.who):'<span class="c-muted">—</span>'}</td>
+    <td data-label="Amount" class="${isE?'c-red':'c-green'}" style="text-align:right">${isE?'−':'+'}${$f(t.amount)}</td>
+    <td data-label="Notes" class="c-muted">${esc(t.desc||'')}</td>
+    <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditTx('${t.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delTx('${t.id}')">Del</button></td>
+  </tr>`;}).join('');
+  const moRows=Array.from({length:cmo()},(_,i)=>{
+    const mn=i+1,bud=b.monthly+allocTot(id,mn,yr),sp=netSpent(id,mn,yr),vr=bud-sp;
+    const pct=bud>0?Math.min(100,Math.round(sp/bud*100)):0;
+    const barCls=pct>=100?'bad':pct>=80?'warn':'ok';
+    return`<tr>
+      <td data-label="Month">${MO[i]}</td>
+      <td data-label="Budget" style="text-align:right">${$f(bud)}${bud>b.monthly?`<span class="c-green" style="font-size:.68rem"> ↑</span>`:''}</td>
+      <td data-label="Spent" style="text-align:right" class="${sp>bud?'c-red':''}">${$f(sp)}</td>
+      <td data-label="Progress"><div class="mo-bar-w"><div class="hbar ${barCls}" style="width:${pct}%"></div></div> <span style="font-size:.7rem;color:var(--muted)">${pct}%</span></td>
+      <td data-label="Variance" style="text-align:right" class="${vr<0?'c-red':'c-green'}">${$pm(vr)}</td>
+    </tr>`;}).join('');
+  const extra=allocTot(id,null,yr);
+  const als=(db.allocations||[]).filter(a=>a.bucket===id&&new Date(a.date+'T00:00:00').getFullYear()===yr).sort((a,b)=>b.date.localeCompare(a.date));
+  const alRows=als.map(a=>`<tr>
+    <td style="white-space:nowrap">${fdate(a.date)}</td>
+    <td style="text-align:right" class="${a.amount<0?'c-red':'c-green'}">${$pm(a.amount)}</td>
+    <td class="c-muted">${esc(a.notes||'')}</td>
+    <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditAlloc('${a.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delAlloc('${a.id}')">Del</button></td>
+  </tr>`).join('');
+  return`<button class="backbtn" onclick="go('${backTab}')">${ico('arrowLeft',14)} Back to ${backTab==='bills'?'Bills':'Buckets'}</button>
+  <div class="pg-hdr"><h1>${esc(b.name)}</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openAlloc(null,'${id}')">+ Add Funds</button><button class="btn btn-primary" onclick="openAddTx('${id}')">+ Add to Bucket</button></span></div>
+  <div class="sum-row">
+    <div class="sum-tile sum-tile-blue"><div class="sum-lbl">Monthly Budget</div><div class="sum-val">${$f(b.monthly)}</div></div>
+    <div class="sum-tile sum-tile-green"><div class="sum-lbl">YTD Accrued</div><div class="sum-val">${$f(s.acc)}</div>${Math.abs(extra)>0.005?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">incl. ${$pm(extra)} extra funded</div>`:''}</div>
+    <div class="sum-tile sum-tile-red"><div class="sum-lbl">YTD Spent</div><div class="sum-val c-red">${$f(s.sp)}</div></div>
+    <div class="sum-tile ${s.bal<0?'sum-tile-red':'sum-tile-green'}"><div class="sum-lbl">YTD Balance</div><div class="sum-val ${s.bal<0?'c-red':'c-green'}">${$s(s.bal)}</div></div>
+  </div>
+  <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Monthly Breakdown ${yr}</h2></div>
+    <div class="tbl-wrap"><table class="dt tbl-mobile">
+      <thead><tr><th>Month</th><th style="text-align:right">Budget</th><th style="text-align:right">Spent</th><th>Progress</th><th style="text-align:right">Variance</th></tr></thead>
+      <tbody>${moRows}</tbody></table></div></div>
+  <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>All Transactions (${yr})</h2></div>
+    <div class="tbl-wrap"><table class="dt tbl-mobile">
+      <thead><tr><th>Date</th><th>Who</th><th style="text-align:right">Amount</th><th>Notes</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5"><div class="empty-state">No transactions recorded this year</div></td></tr>'}</tbody>
+    </table></div></div>
+  ${als.length?`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Extra Funding (${yr})</h2><span class="c-muted" style="font-size:.72rem">Money added beyond the monthly budget</span></div>
+    <div class="tbl-wrap"><table class="dt">
+      <thead><tr><th>Date</th><th style="text-align:right">Amount</th><th>Notes</th><th></th></tr></thead>
+      <tbody>${alRows}</tbody></table></div></div>`:''}`;
+}
+
+/* ── PAGE: CREDIT CARDS ─────────────────────────────────────────── */
+function pgCards(){
+  const mo=cmo(),yr=cyr();
+  const panels=getCards().map(({id:card,label:_clbl})=>{
+    const txs=cardTxs(card,mo,yr),moBal=cardBal(card,mo,yr),out=cardOutstanding(card);
+    const carried=Math.round((out-moBal)*100)/100;
+    const actual=+((db.cardActualBalance||{})[card]||0);
+    const diff=Math.round((actual-out)*100)/100;
+    const txR=txs.length?txs.map(t=>`<div class="cc-row${t.type!=='expense'?' cc-credit':''}">
+      <span style="color:var(--muted);white-space:nowrap;font-size:.72rem">${fdate(t.date)}</span>
+      <span style="flex:1;margin:0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.desc||bname(t.bucket))}</span>
+      <span class="${t.type==='expense'?'c-red':'c-green'}" style="white-space:nowrap;font-weight:600">${t.type==='expense'?'−':'+'}${$f(t.amount)}</span>
+      <span style="white-space:nowrap;margin-left:4px;flex-shrink:0"><button class="btn btn-ghost btn-xs" onclick="openEditTx('${t.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delTx('${t.id}')">Del</button></span>
+    </div>`).join(''):'<div class="empty-state">No charges this month</div>';
+    const hdrBadge=out>0.005?`<span class="badge badge-red" style="font-size:.65rem;font-weight:700">${$f(out)} owed</span>`:'<span class="paid-badge">✓ Paid off</span>';
+    return`<div class="cc-panel">
+      <div class="cc-hdr"><span class="cc-name">${_clbl}</span>${hdrBadge}</div>
+      <div class="cc-body">${txR}
+        <div class="cc-total"><span>${MO[mo-1]} Charges</span><span class="${moBal>0?'c-red':'c-muted'}">${$f(moBal)}</span></div>
+        <div class="cc-total"><span style="font-weight:700">Outstanding Balance${carried>0.005?`<div class="c-muted" style="font-size:.68rem;font-weight:400">incl. ${$f(carried)} from earlier months</div>`:''}</span><span class="${out>0.005?'c-red':'c-green'}" style="font-weight:700">${$f(out)}</span></div>
+        <div class="cc-total" style="border-top:1px solid var(--border);padding-top:6px;margin-top:2px">
+          <span>Card Says <span style="font-size:.7rem;color:var(--muted);font-weight:400">(click)</span></span>
+          <span class="edh" id="cbal-${card}" onclick="editCardActualBal('${card}')">${$f(actual)}</span>
+        </div>
+        <div class="cc-total">
+          <span style="color:var(--muted)">Difference</span>
+          ${Math.abs(diff)<0.01?`<span class="c-green">✓ Match</span>`:`<span class="${diff>0?'c-red':'c-green'}" title="What the card company says minus the app's outstanding balance">${diff>0?'+':''}${$f(diff)}</span>`}
+        </div>
+      </div>
+      <div class="cc-foot">
+        <button class="btn btn-success btn-sm" onclick="openCardPay('${card}')">Make a Payment</button>
+        <button class="btn btn-ghost btn-sm" onclick="openAddTx(null,'${card}')">+ Add Charge</button>
+      </div>
+    </div>`;}).join('');
+  const pays=db.transactions.filter(t=>t.type==='cc_payment').sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+  const histR=pays.map(t=>`<tr><td>${cardLabel(t.card)}</td>
+    <td style="white-space:nowrap">${fdate(t.date)}</td>
+    <td style="text-align:right">${$f(t.amount)}</td>
+    <td class="c-muted">${esc(acctName(t.fromAccount)||'—')}</td>
+    <td class="c-muted">${esc(t.desc||'')}</td>
+    <td><button class="btn btn-danger btn-xs" onclick="undoCardPayment('${t.id}')">Undo</button></td>
+  </tr>`).join('');
+  return`<div class="pg-hdr"><h1>Credit Cards — ${MO[mo-1]} ${yr}</h1></div>
+  <div class="cc-grid">${panels}</div>
+  ${pays.length?`<div class="card" style="margin-top:14px;padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Payment History</h2><span class="c-muted" style="font-size:.72rem">Undo reverses one payment and restores the account balance</span></div>
+    <div class="tbl-wrap"><table class="dt">
+      <thead><tr><th>Card</th><th>Date</th><th style="text-align:right">Amount</th><th>From</th><th>Notes</th><th></th></tr></thead>
+      <tbody>${histR}</tbody></table></div></div>`:''}`;
+}
+
+/* ── PAGE: PAYCHECKS ────────────────────────────────────────────── */
+function biweeklyExpected(who,rate){
+  const yr=cyr(),today=new Date();
+  const sorted=(db.paychecks||[]).filter(p=>p.who===who&&new Date(p.date+'T00:00:00').getFullYear()===yr).map(p=>new Date(p.date+'T00:00:00')).sort((a,b)=>a-b);
+  if(!sorted.length)return null;
+  const days=(today-sorted[0])/(864e5);
+  return(Math.floor(days/14)+1)*rate;
+}
+function pcDueDate(who){
+  const yr=cyr();
+  const dates=(db.paychecks||[]).filter(p=>p.who===who&&new Date(p.date+'T00:00:00').getFullYear()===yr).map(p=>new Date(p.date+'T00:00:00')).sort((a,b)=>a-b);
+  if(dates.length<2)return null;
+  let td=0;for(let i=1;i<dates.length;i++)td+=(dates[i]-dates[i-1])/864e5;
+  const avg=Math.round(td/(dates.length-1));
+  const nxt=new Date(dates[dates.length-1].getTime()+avg*864e5);
+  return nxt<=new Date()?nxt:null;
+}
+function pgPay(){
+  const yr=cyr(),pcs=db.paychecks||[];
+  const yrPcs=pcs.filter(p=>new Date(p.date+'T00:00:00').getFullYear()===yr);
+  const cA=yrPcs.filter(p=>p.who==='Chris').reduce((s,p)=>s+p.amount,0);
+  const sA=yrPcs.filter(p=>p.who==='Sarah').reduce((s,p)=>s+p.amount,0);
+  const cExpRaw=biweeklyExpected('Chris',db.cfg.chrisPay),sExpRaw=biweeklyExpected('Sarah',db.cfg.sarahPay);
+  const cE=cExpRaw!==null?cExpRaw:null,sE=sExpRaw!==null?sExpRaw:null;
+  // Detect schedule from logged paychecks
+  function schedNote(who){
+    const dates=yrPcs.filter(p=>p.who===who).map(p=>new Date(p.date+'T00:00:00')).sort((a,b)=>a-b);
+    if(dates.length<2)return'';
+    let td=0;for(let i=1;i<dates.length;i++)td+=(dates[i]-dates[i-1])/864e5;
+    const avg=Math.round(td/(dates.length-1));
+    const nxt=new Date(dates[dates.length-1].getTime()+avg*864e5);
+    return`every ~${avg} days · next est. ${nxt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+  }
+  const cSched=schedNote('Chris'),sSched=schedNote('Sarah');
+  const exYtd=surplusYtd(yr),unrec=pcUnreconciled();
+  const dueH=['Chris','Sarah'].map(w=>{
+    const d=pcDueDate(w);
+    if(!d)return'';
+    const iso=d.toISOString().slice(0,10);
+    return`<div class="alert al-warn" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${ico('banknote',15)}
+      <div style="flex:1"><strong>${w}'s paycheck</strong> was expected around <strong>${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</strong> and hasn't been logged</div>
+      <button class="btn btn-primary btn-sm" onclick="openAddPcFor('${w}','${iso}')">Log it</button>
+    </div>`;
+  }).join('');
+  const oA=yrPcs.filter(p=>p.kind==='other').reduce((s,p)=>s+p.amount,0);
+  const rows=[...pcs].sort((a,b)=>b.date.localeCompare(a.date)).map(p=>{
+    const dv=pcDelta(p),left=dv-pcAllocated(p.id);
+    let note='';
+    if(dv>0.005)note=`<div style="font-size:.68rem;font-weight:600" class="${left>0.005?'c-warn':'c-muted'}">+${$f(dv)} extra${left>0.005?' · '+$f(left)+' not in buckets':' · ✓ in buckets'}</div>`;
+    else if(dv<-0.005)note=`<div style="font-size:.68rem;font-weight:600" class="${left<-0.005?'c-warn':'c-muted'}">−${$f(-dv)} short${left<-0.005?' · '+$f(-left)+' still in buckets':' · ✓ buckets reduced'}</div>`;
+    const whoCell=p.kind==='other'?`<span class="badge badge-neutral" style="font-size:.62rem">Other</span> ${esc(p.source||'')}`:esc(p.who);
+    return`<tr>
+    <td style="white-space:nowrap">${fdate(p.date)}</td><td>${whoCell}${p.acctId?`<div class="c-muted" style="font-size:.66rem">→ ${esc(acctName(p.acctId))}</div>`:''}</td>
+    <td style="text-align:right" class="c-green">${$f(p.amount)}${note}</td>
+    <td class="c-muted">${esc(p.notes||'')}</td>
+    <td style="white-space:nowrap">${Math.abs(left)>0.005&&Math.abs(dv)>0.005?`<button class="btn btn-success btn-xs" onclick="openAlloc('${p.id}')">${left>0?'Allocate':'Reconcile'}</button> `:''}<button class="btn btn-ghost btn-xs" onclick="openEditPc('${p.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delPc('${p.id}')">Del</button></td>
+  </tr>`;}).join('');
+  const alRows=[...(db.allocations||[])].sort((a,b)=>b.date.localeCompare(a.date)).map(a=>`<tr>
+    <td style="white-space:nowrap">${fdate(a.date)}</td>
+    <td>${esc(bname(a.bucket))}</td>
+    <td style="text-align:right" class="${a.amount<0?'c-red':'c-green'}">${$pm(a.amount)}</td>
+    <td class="c-muted">${esc(a.notes||'')}</td>
+    <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditAlloc('${a.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delAlloc('${a.id}')">Del</button></td>
+  </tr>`).join('');
+  return`<div class="pg-hdr"><h1>Paychecks</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openAlloc()">+ Add Funds to Bucket</button><button class="btn btn-ghost" onclick="openAddOther()">+ Other Income</button><button class="btn btn-primary" onclick="openAddPc()">+ Log Paycheck</button></span></div>
+  ${dueH}
+  <div class="sum-row">
+    <div class="sum-tile"><div class="sum-lbl">Chris Expected YTD</div><div class="sum-val">${cE!==null?$f(cE):'<span class="c-muted" style="font-size:.9rem">log first check</span>'}</div>${cSched?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">${cSched}</div>`:''}</div>
+    <div class="sum-tile"><div class="sum-lbl">Chris Received</div><div class="sum-val c-green">${$f(cA)}</div>${cE!==null?`<div class="pbar" style="margin-top:6px"><div class="pb-${cA>=cE?'ok':'warn'}" style="width:${Math.min(100,Math.round(cA/cE*100))}%"></div></div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${Math.min(100,Math.round(cA/cE*100))}% · ${cA>=cE?'✓ on track':'⚠ '+$f(cE-cA)+' behind'}</div>`:''}</div>
+    <div class="sum-tile"><div class="sum-lbl">Sarah Expected YTD</div><div class="sum-val">${sE!==null?$f(sE):'<span class="c-muted" style="font-size:.9rem">log first check</span>'}</div>${sSched?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">${sSched}</div>`:''}</div>
+    <div class="sum-tile"><div class="sum-lbl">Sarah Received</div><div class="sum-val c-green">${$f(sA)}</div>${sE!==null?`<div class="pbar" style="margin-top:6px"><div class="pb-${sA>=sE?'ok':'warn'}" style="width:${Math.min(100,Math.round(sA/sE*100))}%"></div></div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${Math.min(100,Math.round(sA/sE*100))}% · ${sA>=sE?'✓ on track':'⚠ '+$f(sE-sA)+' behind'}</div>`:''}</div>
+    ${oA>0.005?`<div class="sum-tile"><div class="sum-lbl">Other Income</div><div class="sum-val c-green">${$f(oA)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">bonuses, refunds, gifts…</div></div>`:''}
+    <div class="sum-tile"><div class="sum-lbl">Total Received</div><div class="sum-val c-green">${$f(cA+sA+oA)}</div></div>
+    <div class="sum-tile"><div class="sum-lbl">Extra Received</div><div class="sum-val ${exYtd>0.005?'c-green':''}">${$f(exYtd)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">over expected pay YTD</div></div>
+    <div class="sum-tile"><div class="sum-lbl">Unreconciled</div><div class="sum-val ${unrec.over>1||unrec.under>1?'c-warn':'c-green'}">${$f(unrec.over+unrec.under)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${unrec.over>1||unrec.under>1?[unrec.over>1?$f(unrec.over)+' extra not in buckets':'',unrec.under>1?$f(unrec.under)+' short not pulled back':''].filter(Boolean).join(' · '):'✓ buckets match paychecks'}</div></div>
+  </div>
+  <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Paycheck Log</h2></div>
+    <div class="tbl-wrap"><table class="dt">
+      <thead><tr><th>Date</th><th>Who</th><th style="text-align:right">Amount</th><th>Notes</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5"><div class="empty-state">No paychecks logged yet — click "+ Log Paycheck" to start</div></td></tr>'}</tbody>
+    </table></div></div>
+  <div class="card" style="padding:0;margin-top:14px"><div class="card-hdr" style="padding:10px 16px"><h2>Bucket Allocations</h2><span class="c-muted" style="font-size:.72rem">Extra money added to bucket budgets (doesn't count as new income)</span></div>
+    <div class="tbl-wrap"><table class="dt">
+      <thead><tr><th>Date</th><th>Bucket</th><th style="text-align:right">Amount</th><th>Notes</th><th></th></tr></thead>
+      <tbody>${alRows||'<tr><td colspan="5"><div class="empty-state">No allocations yet — log a paycheck over the expected amount or click "+ Add Funds to Bucket"</div></td></tr>'}</tbody>
+    </table></div></div>`;
+}
+
+/* ── PAGE: ACCOUNTS ─────────────────────────────────────────────── */
+function acctObTotal(){return(db.accounts||[]).reduce((s,a)=>s+(+(a.openingBalance)||0),0)||(+(db.cfg.openingBalance)||0);}
+function pgAccounts(){
+  const yr=cyr(),mo=cmo(),tot=acctTot();
+  const aPcInc=(db.paychecks||[]).filter(p=>new Date(p.date+'T00:00:00').getFullYear()===yr).reduce((s,p)=>s+p.amount,0);
+  const aTxInc=ytdTot('income'),aTxExp=ytdTot('expense'),aTotInc=aPcInc+aTxInc;
+  const aOb=acctObTotal();
+  const aExpTot=aOb+aTotInc-aTxExp,aRecon=aExpTot-tot;
+  const aOnCards=cardsOwed(),aUnexpl=Math.round((aRecon+aOnCards)*100)/100;
+  const typeLabels={accrual:'Accrual',bills:'Bills',spending:'Spending',savings:'Savings'};
+
+  const fundH=(db.accounts||[]).filter(a=>a.bucketType).map(a=>{
+    const type=a.bucketType,lbl=typeLabels[type]||type;
+    const bkts=db.buckets.filter(b=>b.type===type);
+    let totAcc=0,totSp=0;
+    for(const b of bkts){const s=bstats(b,null);totAcc+=s.acc;totSp+=s.sp;}
+    const bucketBal=totAcc-totSp;
+    const buf=+(a.buffer)||0;
+    const available=a.balance-buf;
+    const diff=available-bucketBal;
+    const bktRows=bkts.map(b=>{
+      const s=bstats(b,null),w=Math.max(0,Math.min(100,s.pct)),cls=s.bal<0?'bad':s.pct>80?'warn':'ok';
+      return`<tr onclick="go('${type==='bills'?'bills':'buckets'}','${b.id}')" style="cursor:pointer">
+        <td>${esc(b.name)}</td>
+        <td style="text-align:right">${$f(s.acc)}</td>
+        <td style="text-align:right" class="c-red">${$f(s.sp)}</td>
+        <td style="text-align:right" class="${s.bal<0?'c-red':'c-green'}">${$s(s.bal)}</td>
+        <td style="width:90px"><div class="pbar"><div class="pb-${cls}" style="width:${w}%"></div></div></td>
+      </tr>`;}).join('');
+    return`<div class="card"><div class="card-hdr"><h2>${esc(a.bank)} — ${esc(a.name)} <span style="font-weight:400;opacity:.6">(${lbl})</span></h2></div>
+      <div class="sum-row">
+        <div class="sum-tile"><div class="sum-lbl">Opening Jan 1</div><div class="sum-val">${$s(+(a.openingBalance)||0)}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">YTD Budget</div><div class="sum-val">${$f(totAcc)}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">YTD Spent</div><div class="sum-val c-red">${$f(totSp)}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">Bucket Balance</div><div class="sum-val ${bucketBal<0?'c-red':'c-green'}">${$s(bucketBal)}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">Balance</div><div class="sum-val ${a.balance<0?'c-red':''} edh" onclick="editAcctBal('${a.id}')" id="ab-${a.id}" title="Click to edit">${$s(a.balance)}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">Buffer</div><div class="sum-val c-muted">${$f(buf)}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">Available</div><div class="sum-val ${available<0?'c-red':''}">${$s(available)}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">Variance</div><div class="sum-val ${Math.abs(diff)<1?'c-green':diff>0?'c-green':'c-red'}" title="Available (Balance − Buffer) minus Bucket Balance. Zero means account cash matches the budget plan exactly.">${diff>0?'+':''}${$s(diff)}</div></div>
+      </div>
+      <div class="tbl-wrap"><table class="dt">
+        <thead><tr><th>Bucket</th><th style="text-align:right">YTD Budget</th><th style="text-align:right">YTD Spent</th><th style="text-align:right">Balance</th><th>Health</th></tr></thead>
+        <tbody>${bktRows}</tbody>
+      </table></div>
+    </div>`;
+  }).join('');
+
+  const rows=(db.accounts||[]).map(a=>`<tr>
+    <td>${esc(a.bank)}</td><td>${esc(a.name)}</td>
+    <td class="c-muted">${a.bucketType?typeLabels[a.bucketType]:'—'}</td>
+    <td style="text-align:right" class="${a.balance<0?'c-red':''}"><span class="edh" onclick="editAcctBal('${a.id}')" id="ab-${a.id}">${$s(a.balance)}</span></td>
+    <td class="c-muted">${esc(a.notes||'')}</td>
+    <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditAcct('${a.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delAcct('${a.id}')">Del</button></td>
+  </tr>`).join('');
+  return`<div class="pg-hdr"><h1>Accounts</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openTransfer()">⇄ Transfer</button><button class="btn btn-primary" onclick="openAddAcct()">+ Add Account</button></span></div>
+  ${fundH}
+  <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>All Accounts</h2><span class="c-muted" style="font-size:.72rem">Click balance to edit</span></div>
+  <div class="tbl-wrap"><table class="dt">
+    <thead><tr><th>Bank</th><th>Name</th><th>Fund</th><th style="text-align:right">Balance</th><th>Notes</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr><td colspan="3" style="font-weight:700">Total</td>
+      <td style="text-align:right;font-weight:700" class="${tot<0?'c-red':'c-green'}">${$s(tot)}</td>
+      <td colspan="2"></td></tr></tfoot>
+  </table></div></div>
+  <div class="card"><div class="card-hdr"><h2>Overall Reconciliation</h2></div>
+    <div class="sum-row">
+      <div class="sum-tile"><div class="sum-lbl">Opening Balance</div><div class="sum-val">${$s(aOb)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">YTD Income</div><div class="sum-val c-green">+${$f(aTotInc)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">YTD Expenses</div><div class="sum-val c-red">−${$f(aTxExp)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">Expected Total</div><div class="sum-val">${$s(aExpTot)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">Actual Total</div><div class="sum-val">${$s(tot)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">Difference</div><div class="sum-val ${Math.abs(aRecon)<0.01?'c-green':'c-muted'}" title="Expected minus Actual. This grows as card charges await payment — that part is normal float, not error.">${aRecon>0?'+':''}${$s(aRecon)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">On Credit Cards</div><div class="sum-val ${aOnCards>0.005?'c-red':'c-muted'}" title="Tracked card balances plus the manual pending Amex amount">+${$f(aOnCards)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">Unexplained</div><div class="sum-val ${Math.abs(aUnexpl)<1?'c-green':'c-red'}" title="Difference plus what's still owed on credit cards. This is the number to watch — near zero means every dollar is accounted for.">${Math.abs(aUnexpl)<1?'✓ Balanced':`${aUnexpl>0?'+':''}${$s(aUnexpl)}`}</div></div>
+    </div>
+    <p class="c-muted" style="font-size:.78rem;margin-top:2px">Expected = Opening Balance + YTD Income (paychecks + credits) − YTD Expenses. Charges you've logged but not yet paid off sit "on credit cards", so the Difference naturally runs negative by that amount — <strong>Unexplained</strong> (Difference + On Credit Cards) is the true health check.</p>
+  </div>`;
+}
+
+/* ── PAGE: BACKUP ───────────────────────────────────────────────── */
+function pgBackup(){
+  const dataKB=(JSON.stringify(db).length/1024).toFixed(1);
+  const lastExp=db.cfg.lastExport?`Last backup <strong>${fdate(db.cfg.lastExport)}</strong>`:'<span style="color:var(--warn);font-weight:600">Never backed up</span>';
+  return`<div class="pg-hdr"><h1>Backup & Import</h1></div>
+  <div class="card"><div class="card-hdr"><h2>${ico('archive',14)} Export</h2></div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:13px;font-size:.84rem;flex-wrap:wrap">
+      <span>${lastExp}</span>
+      <span class="c-muted">~${dataKB} KB in memory</span>
+    </div>
+    <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">Download a full JSON backup or export transactions as CSV for Excel/Sheets.</p>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="exportJSON()">${ico('archive',13)} Export JSON Backup</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">${ico('list',13)} Export Transactions CSV</button>
+    </div>
+  </div>
+  <div class="card"><div class="card-hdr"><h2>Import</h2></div>
+    <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">Load a previously exported JSON backup. <strong>This replaces all current data.</strong></p>
+    <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+      <input type="file" id="imp-file" accept=".json" style="display:none" onchange="importFile(this)">
+      <button class="btn btn-ghost" onclick="document.getElementById('imp-file').click()">⬆ Choose JSON File</button>
+    </div>
+  </div>
+  <div class="card"><div class="card-hdr"><h2>Automatic Snapshots</h2></div>
+    <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">The app saves one snapshot per day (last 7 kept) the first time it opens, so a bad edit or accidental clear can be undone. Snapshots live in this browser only — they do <strong>not</strong> survive clearing browser data. Export a JSON backup regularly for real safety.</p>
+    ${getSnaps().map((s,i)=>`<div class="setup-brow"><span style="flex:1">${fdate(s.date)}</span><span class="c-muted" style="font-size:.78rem;margin-right:8px">${(s.data.length/1024).toFixed(1)} KB</span><button class="btn btn-ghost btn-xs" onclick="restoreSnap(${i})">Restore</button></div>`).join('')||'<div class="empty-state">No snapshots yet — one is taken automatically each day the app opens</div>'}
+  </div>
+  <div class="card"><div class="card-hdr"><h2>Data Summary</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;font-size:.84rem">
+      <div><div style="font-size:1.4rem;font-weight:700">${db.transactions.length}</div><div class="c-muted">Transactions</div></div>
+      <div><div style="font-size:1.4rem;font-weight:700">${db.buckets.length}</div><div class="c-muted">Buckets</div></div>
+      <div><div style="font-size:1.4rem;font-weight:700">${(db.accounts||[]).length}</div><div class="c-muted">Accounts</div></div>
+      <div><div style="font-size:1.4rem;font-weight:700">${(db.paychecks||[]).length}</div><div class="c-muted">Paychecks</div></div>
+      <div><div style="font-size:1.4rem;font-weight:700">${(db.allocations||[]).length}</div><div class="c-muted">Allocations</div></div>
+      <div><div style="font-size:1.4rem;font-weight:700">${db.transactions.filter(t=>t.type==='cc_payment').length}</div><div class="c-muted">Card Payments</div></div>
+    </div>
+  </div>
+  <div class="card" style="border:1px solid #dc2626">
+    <div class="card-hdr" style="background:#fef2f2"><h2 style="color:#dc2626">Danger Zone</h2></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;padding:4px 0">
+      <div style="flex:1;min-width:220px">
+        <div style="font-weight:600;margin-bottom:4px">Clear Transactions</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">Removes all transactions, paychecks, and card payment records. Buckets and config are kept.</div>
+        <button class="btn btn-danger" onclick="clearTransactions()">Clear All Transactions</button>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <div style="font-weight:600;margin-bottom:4px">Fresh Start</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">Wipes everything — transactions, buckets, accounts, and config. Use to set up for a new user.</div>
+        <button class="btn btn-danger" onclick="clearAll()">Reset for New User</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── PAGE: SETUP ────────────────────────────────────────────────── */
+function pgSetup(){
+  const typeGroups=[{k:'accrual',lbl:'Accrual / Long-term'},{k:'bills',lbl:'Bills'},{k:'spending',lbl:'Spending'},{k:'savings',lbl:'Savings'}];
+  let bktH='';
+  for(const{k,lbl}of typeGroups){
+    const bkts=db.buckets.filter(b=>b.type===k);
+    bktH+=`<div style="margin-bottom:18px"><div class="hgroup-title">${lbl}</div>`;
+    for(const b of bkts)bktH+=`<div class="setup-brow">
+      <span style="flex:1">${esc(b.name)}</span>
+      <span style="width:80px;text-align:right;font-weight:600">${$f(b.monthly)}/mo</span>
+      <button class="btn btn-ghost btn-xs" onclick="openEditBkt('${b.id}')">Edit</button>
+      <button class="btn btn-danger btn-xs" onclick="delBkt('${b.id}')">Del</button>
+    </div>`;
+    bktH+='</div>';
+  }
+  return`<div class="pg-hdr"><h1>Setup</h1></div>
+  <div class="card"><div class="card-hdr"><h2>${ico('settings',14)} Configuration</h2></div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px">Paycheck amounts and budget targets used across the app for projections and reconciliation.</p>
+    <div class="frow">
+      <div class="fg"><label>Chris Pay (per paycheck)</label><input type="number" step="0.01" value="${db.cfg.chrisPay}" onchange="db.cfg.chrisPay=+this.value;dbSave()"/></div>
+      <div class="fg"><label>Sarah Pay (per paycheck)</label><input type="number" step="0.01" value="${db.cfg.sarahPay}" onchange="db.cfg.sarahPay=+this.value;dbSave()"/></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Emergency Fund Target</label><input type="number" step="0.01" value="${db.cfg.emergencyFund}" onchange="db.cfg.emergencyFund=+this.value;dbSave()"/></div>
+      <div class="fg"><label>Critical Bills Total</label><input type="number" step="0.01" value="${db.cfg.criticalBills||0}" onchange="db.cfg.criticalBills=+this.value;dbSave()"/></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Opening Balance — total of all accounts at Jan 1</label><input type="number" step="0.01" value="${db.cfg.openingBalance||0}" onchange="db.cfg.openingBalance=+this.value;dbSave()" title="Used for reconciliation: Expected Total = Opening Balance + YTD Income − YTD Expenses"/><div style="font-size:.72rem;color:var(--muted);margin-top:3px">Used in reconciliation: Expected = Opening + YTD Income − YTD Expenses</div></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-hdr"><h2>${ico('layers',14)} Buckets</h2><button class="btn btn-primary btn-sm" onclick="openAddBkt()">+ Add Bucket</button></div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px">Budget categories grouped by type. Monthly amount is the per-paycheck allocation or recurring cost.</p>
+    ${bktH}</div>
+  <div class="card"><div class="card-hdr"><h2>${ico('creditCard',14)} Credit Cards</h2><button class="btn btn-primary btn-sm" onclick="openAddCard()">+ Add Card</button></div>
+    ${getCards().map(c=>`<div class="setup-brow"><span style="flex:1">${esc(c.label)}</span><span class="c-muted" style="font-size:.82rem;margin-right:8px">${esc(c.id)}</span><button class="btn btn-danger btn-xs" onclick="delCard('${c.id}')">Remove</button></div>`).join('')}
+  </div>
+  <div class="card"><div class="card-hdr"><h2>${ico('lock',14)} App Lock</h2></div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Asks for a password whenever the app opens (and adds a Lock button to the nav). <strong>Casual privacy only</strong> — it keeps wandering eyes out, but the data on this device is not encrypted, so don't reuse a real banking password. Removing the lock or resetting the app clears it.</p>
+    ${db.cfg.passHash?`
+    <div class="frow3">
+      <div class="fg"><label>Current Password</label><input type="password" id="lk-cur" autocomplete="off"/></div>
+      <div class="fg"><label>New Password</label><input type="password" id="lk-new" autocomplete="off"/></div>
+      <div class="fg"><label>Hint (optional)</label><input type="text" id="lk-hint" value="${esc(db.cfg.passHint||'')}" placeholder="shown after a wrong guess"/></div>
+    </div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn btn-primary" onclick="changePass()">Change Password</button><button class="btn btn-danger" onclick="removePass()">Remove Lock</button></div>`
+    :`
+    <div class="frow3">
+      <div class="fg"><label>Password</label><input type="password" id="lk-new" autocomplete="off"/></div>
+      <div class="fg"><label>Confirm</label><input type="password" id="lk-new2" autocomplete="off"/></div>
+      <div class="fg"><label>Hint (optional)</label><input type="text" id="lk-hint" placeholder="shown after a wrong guess"/></div>
+    </div>
+    <button class="btn btn-primary" onclick="setPass()">Enable Lock</button>`}
+  </div>
+  <div class="card"><div class="card-hdr"><h2>${ico('trendingUp',14)} Year-End Rollover</h2></div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:6px">The app is currently tracking <strong>${cyr()}</strong>. When the year ends, roll into ${cyr()+1}:</p>
+    <ul style="font-size:.82rem;color:var(--muted);margin:0 0 12px 18px;line-height:1.6">
+      <li>Each bucket's ${cyr()} ending balance carries into ${cyr()+1} as a Jan 1 allocation (positive or negative)</li>
+      <li>Each account's Jan 1 opening balance is set to its current balance</li>
+      <li>All ${cyr()} history is kept — a JSON backup downloads automatically first</li>
+    </ul>
+    <button class="btn btn-primary" onclick="startNewYear()">Start ${cyr()+1}</button>
+  </div>`;
+}
+function startNewYear(){
+  const yr=cyr(),ny=yr+1;
+  const carry=db.buckets.map(b=>({b,bal:bstats(b,null).bal})).filter(x=>Math.abs(x.bal)>0.005);
+  if(!confirm(`Start ${ny}?\n\n• ${carry.length} bucket balance${carry.length===1?'':'s'} will carry over as Jan 1 allocations\n• Account opening balances will be set to current balances\n• The app switches to ${ny} (all ${yr} data is kept)\n\nA backup file will download first. Continue?`))return;
+  exportJSON();
+  if(!db.allocations)db.allocations=[];
+  for(const{b,bal}of carry)db.allocations.push({id:uid(),date:`${ny}-01-01`,bucket:b.id,amount:Math.round(bal*100)/100,pcId:null,notes:`Carried over from ${yr}`});
+  for(const a of(db.accounts||[]))a.openingBalance=a.balance;
+  db.cfg.year=ny;db.cfg.month=1;
+  dbSave();render();
+  alert(`Welcome to ${ny}! Bucket balances carried over and opening balances reset.`);
+}
+
+/* ── MODAL ──────────────────────────────────────────────────────── */
+function openModal(html){
+  document.getElementById('mdl').innerHTML=html;
+  document.getElementById('mdl').classList.add('open');
+  document.getElementById('mbg').classList.add('open');
+  setTimeout(()=>{const el=document.querySelector('#mdl input:not([type=hidden]),#mdl select');if(el)el.focus();},60);
+}
+function closeModal(){
+  document.getElementById('mdl').classList.remove('open');
+  document.getElementById('mbg').classList.remove('open');
+  _eTxId=_ePcId=_eBktId=_eAcctId=null;
+}
+
+/* ── TRANSACTION FORM ───────────────────────────────────────────── */
+function bktGroups(selId){
+  const gs=[{k:'accrual',lbl:'Accrual / Long-term'},{k:'bills',lbl:'Bills'},{k:'spending',lbl:'Spending'},{k:'savings',lbl:'Savings'}];
+  return gs.map(g=>{
+    const bkts=db.buckets.filter(b=>b.type===g.k);
+    if(!bkts.length)return'';
+    return`<optgroup label="${g.lbl}">${bkts.map(b=>`<option value="${b.id}"${b.id===selId?' selected':''}>${esc(b.name)}</option>`).join('')}</optgroup>`;
+  }).join('');
+}
+
+function openAddTx(prefBkt,prefCard){
+  _eTxId=null;
+  showTxModal({date:today(),who:'Both',amount:'',type:'expense',bucket:prefBkt||db.buckets[0]?.id||'',card:prefCard||'',desc:''},'Add Transaction');
+}
+function openEditTx(id){
+  _eTxId=id;
+  const t=db.transactions.find(x=>x.id===id);
+  if(t)showTxModal({...t},'Edit Transaction');
+}
+function showTxModal(t,title){
+  const cOpts=`<option value="">None</option>${getCards().map(({id:c,label:l})=>`<option value="${c}"${t.card===c?' selected':''}>${l}</option>`).join('')}`;
+  const wOpts=['Chris','Sarah','Both'].map(w=>`<option value="${w}"${t.who===w?' selected':''}>${w}</option>`).join('');
+  const isE=t.type!=='income';
+  openModal(`<div class="mhdr"><h3>${title}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <div class="frow">
+        <div class="fg"><label>Date</label><input type="date" id="tf-date" value="${t.date}"/></div>
+        <div class="fg"><label>Who</label><select id="tf-who">${wOpts}</select></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Type</label><select id="tf-type">
+          <option value="expense"${isE?' selected':''}>Expense</option>
+          <option value="income"${!isE?' selected':''}>Refund / Credit</option>
+        </select></div>
+        <div class="fg"><label>Amount</label><input type="number" id="tf-amt" step="0.01" min="0" placeholder="0.00" value="${t.amount||''}"/></div>
+      </div>
+      <div class="fg"><label>Bucket</label><select id="tf-bkt">${bktGroups(t.bucket)}</select></div>
+      <div class="fg"><label>Credit Card (optional)</label><select id="tf-card">${cOpts}</select></div>
+      <div class="fg"><label>Description</label><input type="text" id="tf-desc" placeholder="Notes..." value="${esc(t.desc||'')}"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveTx()">Save</button></div>`);
+}
+function saveTx(){
+  const date=document.getElementById('tf-date').value;
+  const amt=parseFloat(document.getElementById('tf-amt').value);
+  const bktv=document.getElementById('tf-bkt').value;
+  if(!date||isNaN(amt)||amt<=0||!bktv){alert('Please fill in date, amount, and bucket.');return;}
+  const t={id:_eTxId||uid(),date,who:document.getElementById('tf-who').value,
+    amount:amt,type:document.getElementById('tf-type').value,
+    bucket:bktv,card:document.getElementById('tf-card').value,
+    desc:document.getElementById('tf-desc').value.trim()};
+  if(_eTxId){const i=db.transactions.findIndex(x=>x.id===_eTxId);if(i>=0)db.transactions[i]=t;}
+  else db.transactions.push(t);
+  dbSave();closeModal();pageR();
+}
+function delTx(id){if(!confirm('Delete this transaction?'))return;db.transactions=db.transactions.filter(t=>t.id!==id);dbSave();pageR();}
+
+/* ── PAYCHECK FORM ──────────────────────────────────────────────── */
+function defAcct(who){return db.cfg[who==='Chris'?'chrisAcct':'sarahAcct']||'';}
+function openAddPc(){_ePcId=null;showPcModal({date:today(),who:'Chris',amount:db.cfg.chrisPay,acctId:defAcct('Chris'),notes:''},'Log Paycheck');}
+function openAddPcFor(who,date){_ePcId=null;showPcModal({date,who,amount:pcExpected(who)||'',acctId:defAcct(who),notes:''},'Log Paycheck');}
+function openEditPc(id){_ePcId=id;const p=(db.paychecks||[]).find(x=>x.id===id);if(!p)return;if(p.kind==='other')showOtherModal({...p},'Edit Other Income');else showPcModal({...p},'Edit Paycheck');}
+function showPcModal(p,title){
+  const wO=['Chris','Sarah'].map(w=>`<option value="${w}"${p.who===w?' selected':''}>${w}</option>`).join('');
+  const aO=`<option value="">— none (update balance yourself) —</option>`+(db.accounts||[]).map(a=>`<option value="${a.id}"${p.acctId===a.id?' selected':''}>${esc(a.bank)} ${esc(a.name)}</option>`).join('');
+  openModal(`<div class="mhdr"><h3>${title}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <div class="frow">
+        <div class="fg"><label>Date</label><input type="date" id="pf-date" value="${p.date}"/></div>
+        <div class="fg"><label>Who</label><select id="pf-who" onchange="fillPay(this.value)">${wO}</select></div>
+      </div>
+      <div class="fg"><label>Amount</label><input type="number" id="pf-amt" step="0.01" value="${p.amount}" oninput="pcHint()"/><div id="pf-hint" style="font-size:.72rem;margin-top:3px"></div></div>
+      <div class="fg"><label>Deposit To</label><select id="pf-acct">${aO}</select><div class="c-muted" style="font-size:.72rem;margin-top:3px">The account balance is bumped automatically when a deposit account is chosen</div></div>
+      <div class="fg"><label>Notes</label><input type="text" id="pf-notes" value="${esc(p.notes||'')}"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePc()">Save</button></div>`);
+  pcHint();
+}
+function fillPay(who){
+  const el=document.getElementById('pf-amt');if(el)el.value=who==='Chris'?db.cfg.chrisPay:db.cfg.sarahPay;
+  const ael=document.getElementById('pf-acct');if(ael)ael.value=defAcct(who);
+  pcHint();
+}
+function pcHint(){
+  const el=document.getElementById('pf-hint');if(!el)return;
+  const who=document.getElementById('pf-who').value,amt=parseFloat(document.getElementById('pf-amt').value)||0,exp=pcExpected(who);
+  if(!exp||!amt){el.innerHTML='';return;}
+  const d=amt-exp;
+  el.innerHTML=Math.abs(d)<0.005?`<span class="c-muted">Matches expected ${$f(exp)}</span>`
+    :d>0?`<span class="c-green">${$f(d)} over expected ${$f(exp)} — you'll be prompted to add the extra to buckets</span>`
+    :`<span class="c-warn">${$f(-d)} under expected ${$f(exp)} — you'll be prompted to reduce buckets to match</span>`;
+}
+function pcAcctAdjust(acctId,delta){
+  if(!acctId)return;
+  const a=(db.accounts||[]).find(x=>x.id===acctId);
+  if(a)a.balance=Math.round((a.balance+delta)*100)/100;
+}
+function savePc(){
+  const p={id:_ePcId||uid(),date:document.getElementById('pf-date').value,
+    who:document.getElementById('pf-who').value,
+    amount:parseFloat(document.getElementById('pf-amt').value)||0,
+    acctId:document.getElementById('pf-acct').value||'',
+    notes:document.getElementById('pf-notes').value.trim()};
+  if(!p.date||p.amount<=0){alert('Please enter date and amount.');return;}
+  if(!db.paychecks)db.paychecks=[];
+  const prev=_ePcId?db.paychecks.find(x=>x.id===_ePcId):null;
+  if(prev)pcAcctAdjust(prev.acctId,-prev.amount);
+  pcAcctAdjust(p.acctId,p.amount);
+  db.cfg[p.who==='Chris'?'chrisAcct':'sarahAcct']=p.acctId;
+  if(_ePcId){const i=db.paychecks.findIndex(x=>x.id===_ePcId);if(i>=0)db.paychecks[i]=p;}else db.paychecks.push(p);
+  dbSave();closeModal();pageR();
+  if(Math.abs(pcDelta(p)-pcAllocated(p.id))>0.005)openAlloc(p.id);
+}
+function delPc(id){
+  const p=(db.paychecks||[]).find(x=>x.id===id);
+  if(!confirm(`Delete this paycheck?${p&&p.acctId?`\n${acctName(p.acctId)}'s balance will be reduced by ${$f(p.amount)}.`:''}`))return;
+  if(p)pcAcctAdjust(p.acctId,-p.amount);
+  db.paychecks=(db.paychecks||[]).filter(x=>x.id!==id);dbSave();pageR();
+}
+
+/* ── OTHER INCOME (not compared to expected pay, never "unallocated") ── */
+function openAddOther(){_ePcId=null;showOtherModal({date:today(),source:'',amount:'',acctId:'',notes:''},'Log Other Income');}
+function showOtherModal(p,title){
+  const aO=`<option value="">— none (update balance yourself) —</option>`+(db.accounts||[]).map(a=>`<option value="${a.id}"${p.acctId===a.id?' selected':''}>${esc(a.bank)} ${esc(a.name)}</option>`).join('');
+  openModal(`<div class="mhdr"><h3>${title}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Counts as income like a paycheck, but isn't compared to expected pay and is never flagged as unallocated. To budget it into buckets, use "+ Add Funds to Bucket" afterward.</p>
+      <div class="frow">
+        <div class="fg"><label>Date</label><input type="date" id="of-date" value="${p.date}"/></div>
+        <div class="fg"><label>Amount</label><input type="number" id="of-amt" step="0.01" min="0" placeholder="0.00" value="${p.amount}"/></div>
+      </div>
+      <div class="fg"><label>Source</label><input type="text" id="of-src" placeholder="Bonus, tax refund, gift, side job…" value="${esc(p.source||'')}"/></div>
+      <div class="fg"><label>Deposit To</label><select id="of-acct">${aO}</select><div class="c-muted" style="font-size:.72rem;margin-top:3px">The account balance is bumped automatically when a deposit account is chosen</div></div>
+      <div class="fg"><label>Notes</label><input type="text" id="of-notes" value="${esc(p.notes||'')}"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveOther()">Save</button></div>`);
+}
+function saveOther(){
+  const p={id:_ePcId||uid(),date:document.getElementById('of-date').value,
+    who:'Other',kind:'other',
+    source:document.getElementById('of-src').value.trim()||'Other income',
+    amount:parseFloat(document.getElementById('of-amt').value)||0,
+    acctId:document.getElementById('of-acct').value||'',
+    notes:document.getElementById('of-notes').value.trim()};
+  if(!p.date||p.amount<=0){alert('Please enter date and amount.');return;}
+  if(!db.paychecks)db.paychecks=[];
+  const prev=_ePcId?db.paychecks.find(x=>x.id===_ePcId):null;
+  if(prev)pcAcctAdjust(prev.acctId,-prev.amount);
+  pcAcctAdjust(p.acctId,p.amount);
+  if(_ePcId){const i=db.paychecks.findIndex(x=>x.id===_ePcId);if(i>=0)db.paychecks[i]=p;}else db.paychecks.push(p);
+  dbSave();closeModal();pageR();
+}
+
+/* ── BUCKET ALLOCATIONS (extra paycheck money → buckets) ────────── */
+let _eAllocId=null;
+function openAlloc(pcId,bucketId){
+  _eAllocId=null;
+  const p=pcId?(db.paychecks||[]).find(x=>x.id===pcId):null;
+  const left=p?pcDelta(p)-pcAllocated(p.id):0;
+  showAllocModal({date:p?p.date:today(),pcId:p?p.id:'',bucket:bucketId||db.buckets[0]?.id||'',
+    amount:Math.abs(left)>0.005?left.toFixed(2):'',
+    notes:p?`${left<0?'Shortfall':'Extra'} from ${p.who} paycheck ${fdate(p.date)}`:''},
+    p?(left<0?`Reduce Buckets — ${$f(-left)} short`:`Allocate Extra Pay — ${$f(left)} left`):'Add Funds to Bucket');
+}
+function openEditAlloc(id){_eAllocId=id;const a=(db.allocations||[]).find(x=>x.id===id);if(a)showAllocModal({...a},'Edit Allocation');}
+function showAllocModal(a,title){
+  openModal(`<div class="mhdr"><h3>${esc(title)}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Positive amounts add money to a bucket's budget balance; negative amounts pull money back (e.g. a short paycheck). Doesn't count as income, so account reconciliation stays balanced.${a.pcId?' To split across buckets, save a partial amount — the form reopens with the remainder.':''}</p>
+      <div class="frow">
+        <div class="fg"><label>Date</label><input type="date" id="al-date" value="${a.date}"/></div>
+        <div class="fg"><label>Amount</label><input type="number" id="al-amt" step="0.01" placeholder="0.00" value="${a.amount}"/></div>
+      </div>
+      <div class="fg"><label>Bucket</label><select id="al-bkt">${bktGroups(a.bucket)}</select></div>
+      <div class="fg"><label>Notes</label><input type="text" id="al-notes" value="${esc(a.notes||'')}"/></div>
+      <input type="hidden" id="al-pc" value="${a.pcId||''}"/>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveAlloc()">Save</button></div>`);
+}
+function saveAlloc(){
+  const a={id:_eAllocId||uid(),date:document.getElementById('al-date').value,
+    amount:parseFloat(document.getElementById('al-amt').value)||0,
+    bucket:document.getElementById('al-bkt').value,
+    pcId:document.getElementById('al-pc').value||null,
+    notes:document.getElementById('al-notes').value.trim()};
+  if(!a.date||!a.amount||!a.bucket){alert('Please enter date, a non-zero amount, and bucket.');return;}
+  if(!db.allocations)db.allocations=[];
+  const isNew=!_eAllocId;
+  const p=a.pcId?(db.paychecks||[]).find(x=>x.id===a.pcId):null;
+  const leftBefore=p?pcDelta(p)-pcAllocated(p.id):0;
+  if(_eAllocId){const i=db.allocations.findIndex(x=>x.id===_eAllocId);if(i>=0)db.allocations[i]=a;}else db.allocations.push(a);
+  dbSave();closeModal();pageR();
+  if(isNew&&p){
+    const left=leftBefore-a.amount;
+    if(Math.abs(left)>0.005&&Math.sign(left)===Math.sign(leftBefore))openAlloc(a.pcId);
+  }
+}
+function delAlloc(id){if(!confirm('Remove this bucket allocation?'))return;db.allocations=(db.allocations||[]).filter(a=>a.id!==id);dbSave();pageR();}
+
+/* ── BUCKET FORM ────────────────────────────────────────────────── */
+function openAddBkt(){_eBktId=null;showBktModal({name:'',type:'spending',monthly:0},'Add Bucket');}
+function openEditBkt(id){_eBktId=id;const b=bkt(id);if(b)showBktModal({...b},'Edit Bucket');}
+function showBktModal(b,title){
+  const tO=['accrual','bills','spending','savings'].map(t=>`<option value="${t}"${b.type===t?' selected':''}>${t}</option>`).join('');
+  openModal(`<div class="mhdr"><h3>${title}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <div class="fg"><label>Name</label><input type="text" id="bf-name" value="${esc(b.name)}"/></div>
+      <div class="frow">
+        <div class="fg"><label>Type</label><select id="bf-type">${tO}</select></div>
+        <div class="fg"><label>Monthly Budget ($)</label><input type="number" id="bf-mo" step="0.01" value="${b.monthly}"/></div>
+      </div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveBkt()">Save</button></div>`);
+}
+function saveBkt(){
+  const name=document.getElementById('bf-name').value.trim();
+  if(!name){alert('Please enter a bucket name.');return;}
+  const b={id:_eBktId||uid(),name,type:document.getElementById('bf-type').value,monthly:parseFloat(document.getElementById('bf-mo').value)||0};
+  if(_eBktId){const i=db.buckets.findIndex(x=>x.id===_eBktId);if(i>=0)db.buckets[i]=b;}else db.buckets.push(b);
+  dbSave();closeModal();pageR();
+}
+function delBkt(id){
+  const n=db.transactions.filter(t=>t.bucket===id).length;
+  if(!confirm(`Delete this bucket?\n${n} transactions will become unassigned.`))return;
+  db.buckets=db.buckets.filter(b=>b.id!==id);dbSave();pageR();
+}
+
+/* ── ACCOUNT FORM ───────────────────────────────────────────────── */
+function openAddAcct(){_eAcctId=null;showAcctModal({bank:'',name:'',balance:0,openingBalance:0,bucketType:'',notes:''},'Add Account');}
+function openEditAcct(id){_eAcctId=id;const a=(db.accounts||[]).find(x=>x.id===id);if(a)showAcctModal({...a},'Edit Account');}
+function showAcctModal(a,title){
+  const btOpts=['','accrual','bills','spending','savings'].map(t=>`<option value="${t}"${(a.bucketType||'')==t?' selected':''}>${t?t.charAt(0).toUpperCase()+t.slice(1):'— None —'}</option>`).join('');
+  openModal(`<div class="mhdr"><h3>${title}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <div class="frow">
+        <div class="fg"><label>Bank</label><input type="text" id="af-bank" value="${esc(a.bank||'')}"/></div>
+        <div class="fg"><label>Account Name</label><input type="text" id="af-name" value="${esc(a.name||'')}"/></div>
+      </div>
+      <div class="frow3">
+        <div class="fg"><label>Current Balance</label><input type="number" id="af-bal" step="0.01" value="${a.balance||0}"/></div>
+        <div class="fg"><label>Jan 1 Opening Balance</label><input type="number" id="af-ob" step="0.01" value="${a.openingBalance||0}"/></div>
+        <div class="fg"><label>Buffer / Reserve</label><input type="number" id="af-buf" step="0.01" value="${a.buffer||0}" title="Keep this amount reserved (e.g. $300 min balance, or emergency fund)"/></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Fund Type</label><select id="af-btype">${btOpts}</select></div>
+        <div class="fg"><label>Notes</label><input type="text" id="af-notes" value="${esc(a.notes||'')}"/></div>
+      </div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveAcct('${a.id||''}')">Save</button></div>`);
+}
+function saveAcct(existId){
+  const bank=document.getElementById('af-bank').value.trim(),name=document.getElementById('af-name').value.trim();
+  if(!bank||!name){alert('Please enter bank and name.');return;}
+  const a={id:existId||uid(),bank,name,balance:parseFloat(document.getElementById('af-bal').value)||0,openingBalance:parseFloat(document.getElementById('af-ob').value)||0,buffer:parseFloat(document.getElementById('af-buf').value)||0,bucketType:document.getElementById('af-btype').value,notes:document.getElementById('af-notes').value.trim()};
+  if(!db.accounts)db.accounts=[];
+  if(existId){const i=db.accounts.findIndex(x=>x.id===existId);if(i>=0)db.accounts[i]=a;}else db.accounts.push(a);
+  dbSave();closeModal();pageR();
+}
+function delAcct(id){if(!confirm('Delete this account?'))return;db.accounts=(db.accounts||[]).filter(a=>a.id!==id);dbSave();pageR();}
+
+/* ── INLINE EDIT ────────────────────────────────────────────────── */
+function editAcctBal(id){
+  const a=(db.accounts||[]).find(x=>x.id===id),el=document.getElementById('ab-'+id);
+  if(!a||!el)return;
+  const inp=document.createElement('input');
+  inp.type='number';inp.step='0.01';inp.value=a.balance;inp.className='iinp';
+  inp.onblur=()=>{a.balance=parseFloat(inp.value)||0;dbSave();pageR();};
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')pageR();};
+  el.replaceWith(inp);inp.focus();inp.select();
+}
+function editEFund(){
+  const el=document.getElementById('ef-disp');if(!el)return;
+  const inp=document.createElement('input');
+  inp.type='number';inp.step='0.01';inp.value=db.cfg.emergencyFund||0;inp.className='iinp';
+  inp.onblur=()=>{db.cfg.emergencyFund=parseFloat(inp.value)||0;dbSave();pageR();};
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')pageR();};
+  el.replaceWith(inp);inp.focus();inp.select();
+}
+function editOpenBal(){
+  const el=document.getElementById('ob-disp');if(!el)return;
+  const inp=document.createElement('input');
+  inp.type='number';inp.step='0.01';inp.value=db.cfg.openingBalance||0;inp.className='iinp';
+  inp.onblur=()=>{db.cfg.openingBalance=parseFloat(inp.value)||0;dbSave();pageR();};
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')pageR();};
+  el.replaceWith(inp);inp.focus();inp.select();
+}
+function editPendingAmex(){
+  const el=document.getElementById('pamex-disp');if(!el)return;
+  const inp=document.createElement('input');
+  inp.type='number';inp.step='0.01';inp.min='0';inp.value=db.cfg.pendingAmex||0;inp.className='iinp';
+  inp.onblur=()=>{db.cfg.pendingAmex=parseFloat(inp.value)||0;dbSave();pageR();};
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')pageR();};
+  el.replaceWith(inp);inp.focus();inp.select();
+}
+function editCardActualBal(id){
+  const el=document.getElementById('cbal-'+id);if(!el)return;
+  if(!db.cardActualBalance)db.cardActualBalance={};
+  const inp=document.createElement('input');
+  inp.type='number';inp.step='0.01';inp.value=db.cardActualBalance[id]||0;inp.className='iinp';
+  inp.onblur=()=>{db.cardActualBalance[id]=parseFloat(inp.value)||0;dbSave();pageR();};
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')pageR();};
+  el.replaceWith(inp);inp.focus();inp.select();
+}
+function setMonth(mo){db.cfg.month=mo;dbSave();pageR();}
+
+/* ── ACCOUNT TRANSFER ────────────────────────────────────────────── */
+function openTransfer(){
+  const accts=db.accounts||[];
+  if(accts.length<2){alert('You need at least two accounts to transfer between.');return;}
+  const opts=sel=>accts.map((a,i)=>`<option value="${a.id}"${i===sel?' selected':''}>${esc(a.bank)} ${esc(a.name)} (${$s(a.balance)})</option>`).join('');
+  openModal(`<div class="mhdr"><h3>Transfer Between Accounts</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Moves money between account balances. A negative amount reverses direction. Transfers don't touch income or expenses, so reconciliation stays balanced.</p>
+      <div class="fg"><label>From</label><select id="xf-from">${opts(0)}</select></div>
+      <div class="fg"><label>To</label><select id="xf-to">${opts(1)}</select></div>
+      <div class="fg"><label>Amount</label><input type="number" id="xf-amt" step="0.01" placeholder="0.00"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doTransfer()">Transfer</button></div>`);
+}
+function doTransfer(){
+  const fromId=document.getElementById('xf-from').value,toId=document.getElementById('xf-to').value;
+  const amt=parseFloat(document.getElementById('xf-amt').value)||0;
+  if(fromId===toId){alert('Pick two different accounts.');return;}
+  if(!amt){alert('Enter a non-zero amount.');return;}
+  const f=(db.accounts||[]).find(a=>a.id===fromId),t=(db.accounts||[]).find(a=>a.id===toId);
+  if(!f||!t)return;
+  f.balance=Math.round((f.balance-amt)*100)/100;
+  t.balance=Math.round((t.balance+amt)*100)/100;
+  dbSave();closeModal();pageR();
+}
+
+/* ── CARD PAYMENTS (running balance — pay any amount, any time) ──── */
+function openCardPay(card){
+  const out=cardOutstanding(card),lbl=cardLabel(card);
+  if(!(db.accounts||[]).length){alert('Add a bank account first (Accounts page) so the payment can come from somewhere.');return;}
+  const acctOpts=(db.accounts||[]).map(a=>`<option value="${a.id}">${esc(a.bank)} — ${esc(a.name)}</option>`).join('');
+  openModal(`<div class="mhdr"><h3>Pay ${esc(lbl)}</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mbody">
+      <p class="c-muted" style="font-size:.78rem;margin-bottom:10px">Outstanding balance is ${$f(out)}. Pay any amount — partial payments and multiple payments per month are fine; whatever remains stays owed.</p>
+      <div class="fg"><label>Pay From Account</label><select id="cp-acct">${acctOpts}</select></div>
+      <div class="frow">
+        <div class="fg"><label>Date</label><input type="date" id="cp-date" value="${today()}"/></div>
+        <div class="fg"><label>Amount</label><input type="number" id="cp-amt" step="0.01" value="${out>0.005?out.toFixed(2):''}"/></div>
+      </div>
+      <div class="fg"><label>Notes</label><input type="text" id="cp-notes" value="CC Payment — ${esc(lbl)}"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-success" onclick="confirmCardPay('${card}')">Confirm Payment</button></div>`);
+}
+function confirmCardPay(card){
+  const acctId=document.getElementById('cp-acct').value;
+  const date=document.getElementById('cp-date').value;
+  const amt=parseFloat(document.getElementById('cp-amt').value)||0;
+  const notes=document.getElementById('cp-notes').value.trim();
+  if(!date||amt<=0){alert('Please enter date and amount.');return;}
+  db.transactions.push({id:uid(),date,who:'Both',amount:amt,type:'cc_payment',bucket:'',card,desc:notes,fromAccount:acctId});
+  const acct=(db.accounts||[]).find(a=>a.id===acctId);
+  if(acct)acct.balance=Math.round((acct.balance-amt)*100)/100;
+  dbSave();closeModal();pageR();
+}
+function undoCardPayment(txId){
+  const t=db.transactions.find(x=>x.id===txId&&x.type==='cc_payment');
+  if(!t)return;
+  const from=acctName(t.fromAccount);
+  if(!confirm(`Undo the ${$f(t.amount)} payment on ${cardLabel(t.card)} from ${fdate(t.date)}?${from?`\n${from}'s balance will be restored by ${$f(t.amount)}.`:''}`))return;
+  const acct=t.fromAccount?(db.accounts||[]).find(a=>a.id===t.fromAccount):null;
+  if(acct)acct.balance=Math.round((acct.balance+t.amount)*100)/100;
+  db.transactions=db.transactions.filter(x=>x.id!==txId);
+  db.cardPayments=(db.cardPayments||[]).filter(p=>p.txId!==txId);
+  dbSave();pageR();
+}
+
+/* ── BACKUP / IMPORT ────────────────────────────────────────────── */
+function exportJSON(){
+  db.cfg.lastExport=today();dbSave();
+  const out=JSON.stringify({...db,exportedAt:new Date().toISOString(),version:5},null,2);
+  dlFile('budget_backup_'+today()+'.json',out,'application/json');
+}
+function exportCSV(){
+  const hdr=['Date','Who','Type','Amount','Bucket','Card','Description'];
+  const rows=[...db.transactions].sort((a,b)=>b.date.localeCompare(a.date))
+    .map(t=>[t.date,t.who||'',t.type,t.amount,bname(t.bucket),t.card||'',t.desc||'']);
+  const csv=[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  dlFile('budget_transactions_'+today()+'.csv',csv,'text/csv');
+}
+function dlFile(name,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},150);
+}
+function importFile(inp){
+  const file=inp.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.buckets||!d.transactions){alert('Invalid backup file.');return;}
+      if(!confirm(`Import ${d.transactions.length} transactions and ${d.buckets.length} buckets?\nThis REPLACES all current data.`))return;
+      db=d;
+      if(!db.cardPayments)db.cardPayments=[];
+      if(!db.paychecks)db.paychecks=[];
+      if(!db.accounts)db.accounts=[];
+      if(!db.cards)db.cards=[...DEFAULT_CARDS];
+    if(!db.cardActualBalance)db.cardActualBalance={};
+      if(!db.allocations)db.allocations=[];
+      dbSave();render();alert('Import successful!');
+    }catch(err){alert('Failed to parse JSON: '+err.message);}
+  };
+  reader.readAsText(file);inp.value='';
+}
+
+/* ── DANGER ZONE ────────────────────────────────────────────────── */
+function clearTransactions(){
+  if(!confirm('Delete ALL transactions, paychecks, allocations, and card payment records?\nBuckets and config will be kept. This cannot be undone.'))return;
+  db.transactions=[];db.paychecks=[];db.cardPayments=[];db.allocations=[];
+  dbSave();render();
+}
+function clearAll(){
+  if(!confirm('Delete EVERYTHING — transactions, buckets, accounts, cards, and all config?\nThis resets the app for a new user and cannot be undone.'))return;
+  if(!confirm('Final confirmation: all data will be permanently deleted.'))return;
+  db={version:5,exportedAt:new Date().toISOString().slice(0,10),
+    cfg:{chrisPay:0,sarahPay:0,month:new Date().getMonth()+1,year:new Date().getFullYear(),criticalBills:0,emergencyFund:0},
+    buckets:[],transactions:[],paychecks:[],accounts:[],cards:[],cardPayments:[],allocations:[]};
+  dbSave();render();
+}
+
+/* ── MANAGE CREDIT CARDS ─────────────────────────────────────────── */
+function syncCardId(){
+  const v=document.getElementById('card-lbl').value;
+  document.getElementById('card-id').value=v.toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+function openAddCard(){
+  openModal(`<div class="mhdr"><h3>Add Credit Card</h3><button class="mclose" onclick="closeModal()">${ico('x',15)}</button></div>
+    <div class="mform">
+      <div class="fg"><label>Card Name</label><input id="card-lbl" type="text" placeholder="e.g. Visa Signature" oninput="syncCardId()"/></div>
+      <div class="fg"><label>Card ID (auto-filled)</label><input id="card-id" type="text" placeholder="e.g. visa"/></div>
+      <div class="mfoot"><button class="btn btn-primary" onclick="saveCard()">Add Card</button> <button class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>
+    </div>`);
+}
+function saveCard(){
+  const lbl=document.getElementById('card-lbl').value.trim();
+  const id=document.getElementById('card-id').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(!lbl||!id){alert('Please enter a card name.');return;}
+  if(getCards().find(c=>c.id===id)){alert('A card with that ID already exists.');return;}
+  if(!Array.isArray(db.cards))db.cards=[...DEFAULT_CARDS];
+  db.cards.push({id,label:lbl});
+  dbSave();closeModal();pageR();
+}
+function delCard(id){
+  if(!confirm(`Remove "${cardLabel(id)}" from credit cards?`))return;
+  db.cards=getCards().filter(c=>c.id!==id);
+  dbSave();pageR();
+}
+
+/* ── SWIPE TO DELETE ────────────────────────────────────────────── */
+function swipeDelTx(id){db.transactions=db.transactions.filter(t=>t.id!==id);dbSave();pageR();}
+function initSwipeRows(){
+  if(!window.matchMedia('(max-width:640px)').matches)return;
+  document.querySelectorAll('table.tbl-mobile tbody tr[data-txid]').forEach(row=>{
+    let sx=0,sy=0,active=false;
+    row.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;active=true;row.style.transition='';},{passive:true});
+    row.addEventListener('touchmove',e=>{
+      if(!active)return;
+      const dx=sx-e.touches[0].clientX,dy=Math.abs(sy-e.touches[0].clientY);
+      if(dy>30){active=false;row.style.transform='';row.style.background='';return;}
+      if(dx>10){e.preventDefault();row.style.transform=`translateX(${-Math.min(dx,110)}px)`;row.style.background=dx>80?'#fee2e2':'';}
+    },{passive:false});
+    row.addEventListener('touchend',e=>{
+      if(!active){row.style.transform='';row.style.background='';return;}
+      const dx=sx-e.changedTouches[0].clientX,dy=Math.abs(sy-e.changedTouches[0].clientY);
+      active=false;
+      if(dx>90&&dy<40){
+        row.style.transition='transform .2s,opacity .2s';
+        row.style.transform='translateX(-110%)';row.style.opacity='0';
+        setTimeout(()=>swipeDelTx(row.dataset.txid),220);
+      }else{
+        row.style.transition='transform .2s,background .2s';
+        row.style.transform='';row.style.background='';
+        setTimeout(()=>{row.style.transition='';},220);
+      }
+    });
+  });
+}
+
+/* ── APP LOCK (casual privacy — data itself is not encrypted) ───── */
+function pHash(s){let h=5381;for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;return h.toString(36);}
+function isLocked(){return!!(db.cfg&&db.cfg.passHash)&&sessionStorage.getItem('bl_unlock')!==db.cfg.passHash;}
+function renderLock(){
+  document.getElementById('navbar').innerHTML=`<div class="nav-inner"><span class="nav-brand">${ico('trendingUp',15)} BudgetLock</span></div>`;
+  const bn=document.getElementById('bottom-nav');if(bn)bn.innerHTML='';
+  document.getElementById('app').innerHTML=`<div style="max-width:340px;margin:12vh auto 0">
+    <div class="card" style="text-align:center;padding:28px 24px">
+      <div style="margin-bottom:8px;color:var(--primary)">${ico('lock',34)}</div>
+      <h2 style="margin-bottom:4px">BudgetLock</h2>
+      <p class="c-muted" style="font-size:.84rem;margin-bottom:16px">Enter the password to open the budget</p>
+      <input type="password" id="lk-pass" placeholder="Password" autocomplete="off" style="text-align:center" onkeydown="if(event.key==='Enter')tryUnlock()"/>
+      <div id="lk-err" class="c-red" style="font-size:.78rem;margin-top:8px;min-height:17px"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="tryUnlock()">Unlock</button>
+    </div>
+    <p class="c-muted" style="text-align:center;font-size:.72rem;margin-top:12px">Casual privacy only — the data on this device is not encrypted.</p>
+  </div>`;
+  setTimeout(()=>document.getElementById('lk-pass')?.focus(),80);
+}
+function tryUnlock(){
+  const inp=document.getElementById('lk-pass');
+  if(pHash(inp.value)===db.cfg.passHash){sessionStorage.setItem('bl_unlock',db.cfg.passHash);render();return;}
+  const e=document.getElementById('lk-err');
+  e.textContent='Wrong password'+(db.cfg.passHint?' — hint: '+db.cfg.passHint:'');
+  inp.value='';inp.focus();
+}
+function lockApp(){sessionStorage.removeItem('bl_unlock');renderLock();}
+function setPass(){
+  const p=document.getElementById('lk-new').value,p2=document.getElementById('lk-new2').value;
+  if(!p){alert('Enter a password.');return;}
+  if(p!==p2){alert('Passwords do not match.');return;}
+  db.cfg.passHash=pHash(p);db.cfg.passHint=document.getElementById('lk-hint').value.trim();
+  sessionStorage.setItem('bl_unlock',db.cfg.passHash);
+  dbSave();render();
+  alert("App lock enabled — you'll be asked for the password next time the app opens.");
+}
+function changePass(){
+  if(pHash(document.getElementById('lk-cur').value)!==db.cfg.passHash){alert('Current password is wrong.');return;}
+  const p=document.getElementById('lk-new').value;
+  if(!p){alert('Enter a new password.');return;}
+  db.cfg.passHash=pHash(p);db.cfg.passHint=document.getElementById('lk-hint').value.trim();
+  sessionStorage.setItem('bl_unlock',db.cfg.passHash);
+  dbSave();render();alert('Password changed.');
+}
+function removePass(){
+  if(pHash(document.getElementById('lk-cur').value)!==db.cfg.passHash){alert('Current password is wrong.');return;}
+  if(!confirm('Remove the app lock?'))return;
+  delete db.cfg.passHash;delete db.cfg.passHint;
+  sessionStorage.removeItem('bl_unlock');
+  dbSave();render();
+}
+
+/* ── INIT ───────────────────────────────────────────────────────── */
+function init(){
+  showSkeleton();
+  const stored=dbLoad();
+  if(stored&&stored.buckets&&stored.transactions){
+    db=stored;
+    if(!db.cardPayments)db.cardPayments=[];
+    if(!db.paychecks)db.paychecks=[];
+    if(!db.accounts)db.accounts=[];
+    if(!db.cards)db.cards=[...DEFAULT_CARDS];
+    if(!db.cardActualBalance)db.cardActualBalance={};
+    if(!db.allocations)db.allocations=[];
+  }else{
+    db=dc(SEED);
+    if(!db.cardPayments)db.cardPayments=[];
+    if(!db.paychecks)db.paychecks=[];
+    if(!db.cards)db.cards=[...DEFAULT_CARDS];
+    if(!db.cardActualBalance)db.cardActualBalance={};
+    if(!db.allocations)db.allocations=[];
+    dbSave();
+  }
+  snapshot();
+  if(isLocked())renderLock();else render();
+  document.addEventListener('keydown',e=>{
+    if(isLocked())return;
+    if(e.target.matches('input,select,textarea,button'))return;
+    const mdlOpen=document.getElementById('mdl')?.classList.contains('open');
+    if(e.key==='Escape'&&mdlOpen){closeModal();return;}
+    if(mdlOpen)return;
+    if(e.key==='n'||e.key==='N'){e.preventDefault();openAddTx();return;}
+    if(e.key==='/'){
+      e.preventDefault();
+      if(V.tab==='transactions'){const s=document.getElementById('tx-search');if(s){s.focus();s.select();}}
+      else{go('transactions');setTimeout(()=>{const s=document.getElementById('tx-search');if(s){s.focus();s.select();}},120);}
+    }
+  });
+}
+window.addEventListener('load',init);
+</script>
+</body>
+</html>
