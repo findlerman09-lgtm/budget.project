@@ -370,9 +370,16 @@ function allocTot(bucketId,mo,yr){
 }
 function pcExpected(who){return who==='Chris'?(+db.cfg.chrisPay||0):(+db.cfg.sarahPay||0);}
 function pcDelta(p){if(p.kind==='other')return 0;const e=pcExpected(p.who);return e>0?p.amount-e:0;}
-function pcSurplus(p){return Math.max(0,pcDelta(p));}
 function pcAllocated(pcId){return(db.allocations||[]).filter(a=>a.pcId===pcId).reduce((s,a)=>s+a.amount,0);}
-function surplusYtd(yr){const y=yr??cyr();return(db.paychecks||[]).filter(p=>new Date(p.date+'T00:00:00').getFullYear()===y).reduce((s,p)=>s+pcSurplus(p),0);}
+function incomeVariance(yr){
+  const y=yr??cyr();let over=0,short=0;
+  for(const p of(db.paychecks||[])){
+    if(new Date(p.date+'T00:00:00').getFullYear()!==y)continue;
+    const dv=pcDelta(p);
+    if(dv>0)over+=dv;else short-=dv;
+  }
+  return{over:Math.round(over*100)/100,short:Math.round(short*100)/100,net:Math.round((over-short)*100)/100};
+}
 function pcUnreconciled(){
   const y=cyr();let over=0,under=0;
   for(const p of(db.paychecks||[])){
@@ -937,7 +944,7 @@ function pgPay(){
     return`every ~${avg} days · next est. ${nxt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
   }
   const cSched=schedNote('Chris'),sSched=schedNote('Sarah');
-  const exYtd=surplusYtd(yr),unrec=pcUnreconciled();
+  const iv=incomeVariance(yr),unrec=pcUnreconciled();
   const dueH=['Chris','Sarah'].map(w=>{
     const d=pcDueDate(w);
     if(!d)return'';
@@ -976,7 +983,7 @@ function pgPay(){
     <div class="sum-tile"><div class="sum-lbl">Sarah Received</div><div class="sum-val c-green">${$f(sA)}</div>${sE!==null?`<div class="pbar" style="margin-top:6px"><div class="pb-${sA>=sE?'ok':'warn'}" style="width:${Math.min(100,Math.round(sA/sE*100))}%"></div></div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${Math.min(100,Math.round(sA/sE*100))}% · ${sA>=sE?'✓ on track':'⚠ '+$f(sE-sA)+' behind'}</div>`:''}</div>
     ${oA>0.005?`<div class="sum-tile"><div class="sum-lbl">Other Income</div><div class="sum-val c-green">${$f(oA)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">bonuses, refunds, gifts…</div></div>`:''}
     <div class="sum-tile"><div class="sum-lbl">Total Received</div><div class="sum-val c-green">${$f(cA+sA+oA)}</div></div>
-    <div class="sum-tile"><div class="sum-lbl">Extra Received</div><div class="sum-val ${exYtd>0.005?'c-green':''}">${$f(exYtd)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">over expected pay YTD</div></div>
+    <div class="sum-tile"><div class="sum-lbl">Income Variance</div><div class="sum-val ${iv.net>0.005?'c-green':iv.net<-0.005?'c-red':''}" title="Net paycheck over/short vs expected pay YTD. When everything is allocated, this equals the Bucket Allocations total.">${$pm(iv.net)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${$f(iv.over)} over · ${$f(iv.short)} short</div></div>
     <div class="sum-tile"><div class="sum-lbl">Unreconciled</div><div class="sum-val ${unrec.over>1||unrec.under>1?'c-warn':'c-green'}">${$f(unrec.over+unrec.under)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${unrec.over>1||unrec.under>1?[unrec.over>1?$f(unrec.over)+' extra not in buckets':'',unrec.under>1?$f(unrec.under)+' short not pulled back':''].filter(Boolean).join(' · '):'✓ buckets match paychecks'}</div></div>
   </div>
   <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Paycheck Log</h2></div>
