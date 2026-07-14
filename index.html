@@ -329,6 +329,7 @@ function uid(){return 'x'+Math.random().toString(36).slice(2,10);}
 function $f(n){const a=Math.abs(+n||0);return '$'+a.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function $s(n){return(+n<0?'−':'')+$f(n);}
 function $pm(n){return(+n>0?'+':+n<0?'−':'')+'$'+Math.abs(+n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function $spent(n){return +n<-0.005?`<span class="c-green" title="Refunds and credits into this bucket exceed its spending — net money in, which raises the balance">+${$f(n)} credit</span>`:$f(n);}
 function fdate(s){if(!s)return'';const[y,m,d]=s.split('-');return MO[+m-1]+' '+(+d)+', '+y;}
 function today(){return new Date().toISOString().slice(0,10);}
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -742,7 +743,7 @@ function pgBuckets(){
         <td>${esc(b.name)}</td>
         <td style="text-align:right">${$f(b.monthly)}/mo</td>
         <td style="text-align:right">${$f(s.acc)}</td>
-        <td style="text-align:right">${$f(s.sp)}</td>
+        <td style="text-align:right">${$spent(s.sp)}</td>
         <td style="text-align:right" class="${s.bal<0?'c-red':'c-green'}">${$s(s.bal)}</td>
         <td style="width:110px"><div class="hbar-w"><div class="hbar ${cls}" style="width:${w}%"></div></div></td>
       </tr>`;}).join('');
@@ -759,7 +760,7 @@ function pgBuckets(){
           <td><strong>Totals</strong>${acctNote}</td>
           <td style="text-align:right"><strong>${$f(tMo)}/mo</strong></td>
           <td style="text-align:right"><strong>${$f(tAcc)}</strong></td>
-          <td style="text-align:right"><strong>${$f(tSp)}</strong></td>
+          <td style="text-align:right"><strong>${$spent(tSp)}</strong></td>
           <td style="text-align:right"><strong class="${tBal<0?'c-red':'c-green'}">${$s(tBal)}</strong></td>
           <td></td>
         </tr></tfoot>
@@ -784,13 +785,13 @@ function pgBills(){
     return`<div class="bill-tile ${tileStatus}" onclick="go('bills','${b.id}')">
       <div class="bill-name">${esc(b.name)}${dueTag}</div>
       <div class="bill-row"><span class="c-muted">Budget</span><span>${$f(bud)}${bud>b.monthly?`<span class="c-green" style="font-size:.68rem"> ↑</span>`:''}</span></div>
-      <div class="bill-row"><span class="c-muted">Paid this month</span><span>${sp>0?$f(sp):'<span class="c-muted">—</span>'}</span></div>
+      <div class="bill-row"><span class="c-muted">Paid this month</span><span>${sp>0.005?$f(sp):sp<-0.005?$spent(sp):'<span class="c-muted">—</span>'}</span></div>
       ${Math.abs(vr)>0.005?`<div class="bill-row"><span class="c-muted">Variance</span><span class="${vc}" style="font-weight:600">${vsym}${$f(Math.abs(vr))}</span></div>`:''}
     </div>`;}).join('');
   return`<div class="pg-hdr"><h1>Bills — ${MO[mo-1]} ${yr}</h1></div>
   <div class="sum-row" style="margin-bottom:14px">
     <div class="sum-tile"><div class="sum-lbl">Budget</div><div class="sum-val">${$f(totB)}</div></div>
-    <div class="sum-tile"><div class="sum-lbl">Paid This Month</div><div class="sum-val c-red">${$f(totS)}</div></div>
+    <div class="sum-tile"><div class="sum-lbl">Paid This Month</div><div class="sum-val ${totS<-0.005?'c-green':'c-red'}">${$spent(totS)}</div></div>
     <div class="sum-tile"><div class="sum-lbl">Variance</div><div class="sum-val ${totB-totS>=0?'c-green':'c-red'}">${$pm(totB-totS)}</div></div>
   </div>
   <div class="bill-grid">${tiles}</div>`;
@@ -817,7 +818,7 @@ function pgDrill(id){
     return`<tr>
       <td data-label="Month">${MO[i]}</td>
       <td data-label="Budget" style="text-align:right">${$f(bud)}${bud>b.monthly?`<span class="c-green" style="font-size:.68rem"> ↑</span>`:''}</td>
-      <td data-label="Spent" style="text-align:right" class="${sp>bud?'c-red':''}">${$f(sp)}</td>
+      <td data-label="Spent" style="text-align:right" class="${sp>bud?'c-red':''}">${$spent(sp)}</td>
       <td data-label="Progress"><div class="mo-bar-w"><div class="hbar ${barCls}" style="width:${pct}%"></div></div> <span style="font-size:.7rem;color:var(--muted)">${pct}%</span></td>
       <td data-label="Variance" style="text-align:right" class="${vr<0?'c-red':'c-green'}">${$pm(vr)}</td>
     </tr>`;}).join('');
@@ -834,7 +835,7 @@ function pgDrill(id){
   <div class="sum-row">
     <div class="sum-tile sum-tile-blue"><div class="sum-lbl">Monthly Budget</div><div class="sum-val">${$f(b.monthly)}</div></div>
     <div class="sum-tile sum-tile-green"><div class="sum-lbl">YTD Accrued</div><div class="sum-val">${$f(s.acc)}</div>${Math.abs(extra)>0.005?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">incl. ${$pm(extra)} extra funded</div>`:''}</div>
-    <div class="sum-tile sum-tile-red"><div class="sum-lbl">YTD Spent</div><div class="sum-val c-red">${$f(s.sp)}</div></div>
+    <div class="sum-tile ${s.sp<-0.005?'sum-tile-green':'sum-tile-red'}"><div class="sum-lbl">YTD Spent</div><div class="sum-val ${s.sp<-0.005?'c-green':'c-red'}">${$spent(s.sp)}</div></div>
     <div class="sum-tile ${s.bal<0?'sum-tile-red':'sum-tile-green'}"><div class="sum-lbl">YTD Balance</div><div class="sum-val ${s.bal<0?'c-red':'c-green'}">${$s(s.bal)}</div></div>
   </div>
   <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Monthly Breakdown ${yr}</h2></div>
@@ -1018,7 +1019,7 @@ function pgAccounts(){
       return`<tr onclick="go('${type==='bills'?'bills':'buckets'}','${b.id}')" style="cursor:pointer">
         <td>${esc(b.name)}</td>
         <td style="text-align:right">${$f(s.acc)}</td>
-        <td style="text-align:right" class="c-red">${$f(s.sp)}</td>
+        <td style="text-align:right" class="${s.sp<-0.005?'':'c-red'}">${$spent(s.sp)}</td>
         <td style="text-align:right" class="${s.bal<0?'c-red':'c-green'}">${$s(s.bal)}</td>
         <td style="width:90px"><div class="pbar"><div class="pb-${cls}" style="width:${w}%"></div></div></td>
       </tr>`;}).join('');
@@ -1026,7 +1027,7 @@ function pgAccounts(){
       <div class="sum-row">
         <div class="sum-tile"><div class="sum-lbl">Opening Jan 1</div><div class="sum-val">${$s(+(a.openingBalance)||0)}</div></div>
         <div class="sum-tile"><div class="sum-lbl">YTD Budget</div><div class="sum-val">${$f(totAcc)}</div></div>
-        <div class="sum-tile"><div class="sum-lbl">YTD Spent</div><div class="sum-val c-red">${$f(totSp)}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">YTD Spent</div><div class="sum-val ${totSp<-0.005?'c-green':'c-red'}">${$spent(totSp)}</div></div>
         <div class="sum-tile"><div class="sum-lbl">Bucket Balance</div><div class="sum-val ${bucketBal<0?'c-red':'c-green'}">${$s(bucketBal)}</div></div>
         <div class="sum-tile"><div class="sum-lbl">Balance</div><div class="sum-val ${a.balance<0?'c-red':''} edh" onclick="editAcctBal('${a.id}')" id="ab-${a.id}" title="Click to edit">${$s(a.balance)}</div></div>
         <div class="sum-tile"><div class="sum-lbl">Buffer</div><div class="sum-val c-muted">${$f(buf)}</div></div>
