@@ -428,6 +428,24 @@ function cardOutstanding(card){
   }
   return Math.round(s*100)/100;
 }
+/* holding pool: current-month paycheck deposits, earmarked to fund next month's accrual */
+function heldInAcct(acctId){
+  const mo=cmo(),yr=cyr();let s=0;
+  for(const p of(db.paychecks||[])){
+    const d=new Date(p.date+'T00:00:00');
+    if(d.getMonth()+1!==mo||d.getFullYear()!==yr)continue;
+    if(acctId==null||p.acctId===acctId)s+=p.amount;
+    }
+  return Math.round(s*100)/100;
+}
+function heldUnassigned(){
+  const mo=cmo(),yr=cyr();let s=0;
+  for(const p of(db.paychecks||[])){
+    const d=new Date(p.date+'T00:00:00');
+    if(d.getMonth()+1===mo&&d.getFullYear()===yr&&!p.acctId)s+=p.amount;
+  }
+  return Math.round(s*100)/100;
+}
 function cardsOwed(){
   let s=+(db.cfg.pendingAmex)||0;
   for(const c of getCards())s+=cardOutstanding(c.id);
@@ -555,21 +573,27 @@ function pgDash(){
     const bkts=db.buckets.filter(b=>b.type===a.bucketType);
     let totAcc=0,totSp=0;
     for(const b of bkts){const s=bstats(b,null);totAcc+=s.acc;totSp+=s.sp;}
-    const bucketBal=totAcc-totSp,buf=+(a.buffer)||0,avail=a.balance-buf;
+    const bucketBal=totAcc-totSp,buf=+(a.buffer)||0,held=heldInAcct(a.id),avail=a.balance-buf-held;
     const variance=avail-bucketBal;
-    const need=bkts.reduce((s,b)=>s+b.monthly,0);
-    const pfPct=need>0?Math.max(0,Math.min(100,Math.round(variance/need*100))):0;
-    const pfExtra=Math.round((variance-need)*100)/100;
-    const pfCls=variance<-0.005?'bad':pfExtra>=-0.005?'ok':pfPct>=50?'ok':'warn';
     return`<tr>
       <td><strong>${esc(a.bank)}</strong><br><span class="c-muted" style="font-size:.74rem">${typeLabelsD[a.bucketType]||a.bucketType}</span></td>
       <td style="text-align:right" class="${a.balance<0?'c-red':''}">${$s(a.balance)}</td>
       <td style="text-align:right" class="c-muted">${buf>0?$f(buf):'—'}</td>
+      <td style="text-align:right" class="c-muted" title="This month's paycheck deposits into this account — held to fund next month's buckets, released automatically on the 1st">${held>0.005?$f(held):'—'}</td>
       <td style="text-align:right" class="${avail<0?'c-red':avail<buf?'c-warn':''}">${$s(avail)}</td>
       <td style="text-align:right" class="${bucketBal<0?'c-red':'c-green'}">${$s(bucketBal)}</td>
-      <td style="text-align:right" class="${variance<-0.005?'c-red':Math.abs(variance)<1?'c-muted':'c-green'}" title="Available (Balance − Buffer) − Bucket Balance. Under prefunding this grows toward next month's need during the month and resets on the 1st.">${variance>0?'+':''}${$s(variance)}</td>
-      <td style="width:130px">${need>0?`<div class="hbar-w" title="Next month these buckets accrue ${$f(need)}; the variance accumulating now is that funding"><div class="hbar ${pfCls}" style="width:${pfPct}%"></div></div><div class="c-muted" style="font-size:.68rem;margin-top:2px;white-space:nowrap">${variance<-0.005?'shortfall':pfExtra>0.005?`funded · +${$f(pfExtra)} extra`:`${pfPct}% of ${$f(need)}`}</div>`:'<span class="c-muted">—</span>'}</td>
+      <td style="text-align:right" class="${Math.abs(variance)<1?'c-muted':variance<0?'c-red':'c-green'}" title="Available (Balance − Buffer − Held) − Bucket Balance. With paycheck deposits held automatically, this should sit near zero all month.">${variance>0?'+':''}${$s(variance)}</td>
     </tr>`;}).join('');
+  const heldTot=heldInAcct(null),heldUn=heldUnassigned();
+  const nextNeed=db.buckets.reduce((s,b)=>s+b.monthly,0);
+  const heldPct=nextNeed>0?Math.max(0,Math.min(100,Math.round(heldTot/nextNeed*100))):0;
+  const nextMoLbl=MO[cmo()%12];
+  const holdingRow=`<tr style="background:#f8fafc">
+      <td><strong>📥 Paycheck Holding</strong><br><span class="c-muted" style="font-size:.74rem">${MO[cmo()-1]} deposits · releases ${nextMoLbl} 1</span></td>
+      <td style="text-align:right" colspan="2" class="c-muted" style="font-size:.72rem">${heldUn>0.005?`<span class="c-warn" title="These paychecks have no Deposit To account, so no account's Available is reduced for them">${$f(heldUn)} unassigned</span>`:''}</td>
+      <td style="text-align:right"><strong>${$f(heldTot)}</strong></td>
+      <td colspan="3"><div class="hbar-w" title="Held paychecks fund next month's ${$f(nextNeed)} bucket accrual"><div class="hbar ${heldPct>=100?'ok':heldPct>=50?'ok':'warn'}" style="width:${heldPct}%"></div></div><div class="c-muted" style="font-size:.68rem;margin-top:2px">${heldPct}% of ${nextMoLbl}'s ${$f(nextNeed)} accrual funded</div></td>
+    </tr>`;
   const groups=[{label:'Accrual / Long-term',type:'accrual'},{label:'Spending',type:'spending'},{label:'Long-term Savings',type:'savings'},{label:'Bills',type:'bills'}];
   let healthH='';
   for(const g of groups){
@@ -641,10 +665,10 @@ function pgDash(){
   </div>
   <div class="card"><div class="card-hdr"><h2>Accounts</h2><span class="c-muted" style="font-size:.72rem">Click balance to edit</span></div>
     <div class="acct-grid">${acctsH}</div></div>
-  ${fundRows?`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Fund Balances</h2><span class="c-muted" style="font-size:.72rem">Variance accumulates toward next month's funding, then resets on the 1st</span></div>
+  ${fundRows?`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Fund Balances</h2><span class="c-muted" style="font-size:.72rem">This month's paychecks are held for next month's buckets — variance should sit near zero</span></div>
     <div class="tbl-wrap"><table class="dt">
-      <thead><tr><th>Account / Fund</th><th style="text-align:right">Balance</th><th style="text-align:right">Buffer</th><th style="text-align:right">Available</th><th style="text-align:right">Bucket Balance</th><th style="text-align:right">Variance</th><th>Next Month</th></tr></thead>
-      <tbody>${fundRows}</tbody>
+      <thead><tr><th>Account / Fund</th><th style="text-align:right">Balance</th><th style="text-align:right">Buffer</th><th style="text-align:right">Held</th><th style="text-align:right">Available</th><th style="text-align:right">Bucket Balance</th><th style="text-align:right">Variance</th></tr></thead>
+      <tbody>${fundRows}${holdingRow}</tbody>
     </table></div></div>`:''}
   <div class="dash-panel-tabs">
     <button class="dash-ptab${V.dashPanel==='health'?' on':''}" onclick="setDashPanel('health')">${ico('layers',13)} Bucket Health</button>
@@ -756,7 +780,7 @@ function pgBuckets(){
       </tr>`;}).join('');
     // Find linked account for this bucket type
     const acct=(db.accounts||[]).find(a=>a.bucketType===k);
-    const acctAvail=acct?(acct.balance-(+(acct.buffer)||0)):null;
+    const acctAvail=acct?(acct.balance-(+(acct.buffer)||0)-heldInAcct(acct.id)):null;
     const acctVariance=acct!=null?acctAvail-tBal:null;
     const acctNote=acct?`<span style="font-size:.72rem;font-weight:400;color:var(--muted);margin-left:8px">↳ ${esc(acct.bank)} ${esc(acct.name)} avail: <span class="${acctAvail<0?'c-red':''}">${$s(acctAvail)}</span>${Math.abs(acctVariance)<1?` <span class="c-green">✓</span>`:`  <span class="${acctVariance>0?'c-green':'c-red'}">(${acctVariance>0?'+':''}${$s(acctVariance)})</span>`}</span>`:'';
     html+=`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>${lbl}</h2></div>
@@ -1016,11 +1040,9 @@ function pgAccounts(){
     for(const b of bkts){const s=bstats(b,null);totAcc+=s.acc;totSp+=s.sp;}
     const bucketBal=totAcc-totSp;
     const buf=+(a.buffer)||0;
-    const available=a.balance-buf;
+    const held=heldInAcct(a.id);
+    const available=a.balance-buf-held;
     const diff=available-bucketBal;
-    const need=bkts.reduce((s,b)=>s+b.monthly,0);
-    const pfPct=need>0?Math.max(0,Math.min(100,Math.round(diff/need*100))):0;
-    const pfExtra=Math.round((diff-need)*100)/100;
     const bktRows=bkts.map(b=>{
       const s=bstats(b,null),w=Math.max(0,Math.min(100,s.pct)),cls=s.bal<0?'bad':s.pct>80?'warn':'ok';
       return`<tr onclick="go('${type==='bills'?'bills':'buckets'}','${b.id}')" style="cursor:pointer">
@@ -1039,8 +1061,8 @@ function pgAccounts(){
         <div class="sum-tile"><div class="sum-lbl">Balance</div><div class="sum-val ${a.balance<0?'c-red':''} edh" onclick="editAcctBal('${a.id}')" id="ab-${a.id}" title="Click to edit">${$s(a.balance)}</div></div>
         <div class="sum-tile"><div class="sum-lbl">Buffer</div><div class="sum-val c-muted">${$f(buf)}</div></div>
         <div class="sum-tile"><div class="sum-lbl">Available</div><div class="sum-val ${available<0?'c-red':''}">${$s(available)}</div></div>
-        <div class="sum-tile"><div class="sum-lbl">Variance</div><div class="sum-val ${Math.abs(diff)<1?'c-green':diff>0?'c-green':'c-red'}" title="Available (Balance − Buffer) minus Bucket Balance. Under prefunding this grows toward next month's need during the month and resets when buckets accrue on the 1st.">${diff>0?'+':''}${$s(diff)}</div></div>
-        <div class="sum-tile"><div class="sum-lbl">Next Mo. Funded</div><div class="sum-val ${diff<-0.005?'c-red':pfExtra>=-0.005?'c-green':''}">${need>0?pfPct+'%':'—'}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${need>0?(diff<-0.005?'variance negative — real shortfall':pfExtra>0.005?`fully funded · +${$f(pfExtra)} extra`:`${$f(Math.max(0,Math.min(diff,need)))} of ${$f(need)}`):'no monthly budgets'}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">Held</div><div class="sum-val c-muted">${held>0.005?$f(held):'—'}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">${held>0.005?'this month\'s deposits, earmarked for next month':'no deposits held here'}</div></div>
+        <div class="sum-tile"><div class="sum-lbl">Variance</div><div class="sum-val ${Math.abs(diff)<1?'c-green':diff>0?'c-green':'c-red'}" title="Available (Balance − Buffer − Held) minus Bucket Balance. With this month's paychecks held automatically, this should sit near zero all month.">${diff>0?'+':''}${$s(diff)}</div></div>
       </div>
       <div class="tbl-wrap"><table class="dt">
         <thead><tr><th>Bucket</th><th style="text-align:right">YTD Budget</th><th style="text-align:right">YTD Spent</th><th style="text-align:right">Balance</th><th>Health</th></tr></thead>
@@ -1057,6 +1079,18 @@ function pgAccounts(){
     <td style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="openEditAcct('${a.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delAcct('${a.id}')">Del</button></td>
   </tr>`).join('');
   return`<div class="pg-hdr"><h1>Accounts</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="openTransfer()">⇄ Transfer</button><button class="btn btn-primary" onclick="openAddAcct()">+ Add Account</button></span></div>
+  ${(()=>{const h=heldInAcct(null);if(h<=0.005)return'';
+    const un=heldUnassigned(),need=db.buckets.reduce((s,b)=>s+b.monthly,0);
+    const pct=need>0?Math.max(0,Math.min(100,Math.round(h/need*100))):0;
+    return`<div class="card"><div class="card-hdr"><h2>📥 Paycheck Holding — ${MO[cmo()-1]} ${cyr()}</h2><span class="c-muted" style="font-size:.72rem">Invisible account: this month's paycheck deposits, earmarked for next month's buckets</span></div>
+    <div class="sum-row">
+      <div class="sum-tile"><div class="sum-lbl">Held</div><div class="sum-val">${$f(h)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">${MO[cmo()%12]} Accrual Needs</div><div class="sum-val">${$f(need)}</div></div>
+      <div class="sum-tile"><div class="sum-lbl">Funded</div><div class="sum-val ${pct>=100?'c-green':''}">${pct}%</div><div class="pbar-w"><div class="hbar-w" style="margin-top:6px"><div class="hbar ${pct>=100?'ok':pct>=50?'ok':'warn'}" style="width:${pct}%"></div></div></div></div>
+      ${un>0.005?`<div class="sum-tile"><div class="sum-lbl">Unassigned</div><div class="sum-val c-warn">${$f(un)}</div><div class="c-muted" style="font-size:.7rem;margin-top:3px">paychecks with no Deposit To account — set one so the right account holds them</div></div>`:''}
+    </div>
+    <p class="c-muted" style="font-size:.78rem;margin-top:2px">Held money is subtracted from each account's Available so fund variances stay meaningful mid-month. The hold releases automatically on the 1st when buckets accrue — nothing to do.</p>
+  </div>`;})()}
   ${fundH}
   <div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>All Accounts</h2><span class="c-muted" style="font-size:.72rem">Click balance to edit</span></div>
   <div class="tbl-wrap"><table class="dt">
