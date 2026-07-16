@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BudgetLock</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Budget">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
@@ -238,8 +245,9 @@ const SEED={"version": 5, "cfg": {"chrisPay": 0, "sarahPay": 0, "criticalBills":
 const LS='familyBudget5';
 let db={};
 let V={tab:'dashboard',drillId:null,dashMonth:null,dashPanel:'health',alertsHidden:false,
-  txF:{mo:'',bkt:'',who:'',typ:'',crd:'',q:''},txOpen:{},ccCard:'amazon'};
+  txF:{mo:'',bkt:'',who:'',typ:'',crd:'',q:''},txOpen:{},bkOpen:{},ccCard:'amazon'};
 function toggleTxMo(m,open){V.txOpen[m]=open;pageR();}
+function toggleBkGrp(k){V.bkOpen[k]=V.bkOpen[k]===false;pageR();}
 function setAllTxMo(open){V.txOpen={};V._txAll=open;pageR();}
 let _eTxId=null,_ePcId=null,_eBktId=null,_eAcctId=null;
 
@@ -653,6 +661,17 @@ function pgDash(){
       ${Math.abs(unexpl)<1?`<span style="color:#34d399">${ico('check',13)} Balanced${onCards>0.005?` · ${$f(onCards)} on cards`:''}</span>`:`<span style="color:#f87171">Unexplained ${$s(unexpl)}</span>`}
     </div>
   </div>
+  ${db.buckets.length?`<div class="card" style="padding:10px 14px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap">⚡ Quick log</span>
+      <input type="number" id="ql-amt" step="0.01" min="0" placeholder="0.00" style="width:90px;padding:6px 8px;border:1px solid var(--border);border-radius:6px" onkeydown="if(event.key==='Enter')quickLog()"/>
+      <select id="ql-bkt" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;max-width:180px">${bktGroups(db.cfg.lastBucket)}</select>
+      <input type="text" id="ql-desc" placeholder="Notes (optional)" list="ql-desc-list" style="flex:1;min-width:130px;padding:6px 8px;border:1px solid var(--border);border-radius:6px" onkeydown="if(event.key==='Enter')quickLog()"/>
+      <datalist id="ql-desc-list">${descOptions()}</datalist>
+      <button class="btn btn-primary btn-sm" onclick="quickLog()">Add expense</button>
+      <button class="btn btn-ghost btn-sm" onclick="openAddTx()" title="Full form — refunds, cards, other dates">More…</button>
+    </div>
+  </div>`:''}
   <div class="sum-row">
     <div class="sum-tile sum-tile-green"><div class="sum-lbl">YTD Income</div><div class="sum-val c-green">${$f(inc)}</div>${pcInc>0?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">incl. ${$f(pcInc)} paychecks</div>`:''}</div>
     <div class="sum-tile sum-tile-red"><div class="sum-lbl">YTD Expenses</div><div class="sum-val c-red">${$f(exp)}</div>${_prExp>0?`<div class="c-muted" style="font-size:.7rem;margin-top:3px">${MO[mo-1]}: ${$f(_moExp)} <span class="${_expDelta>0?'c-red':'c-green'}">${_expDelta>=0?'↑':'↓'}${$f(Math.abs(_expDelta))}</span> vs ${MO[_prMo-1]}</div>`:''}
@@ -818,8 +837,12 @@ function pgBuckets(){
     const acctAvail=acct?(acct.balance-(+(acct.buffer)||0)-heldInAcct(acct.id)):null;
     const acctVariance=acct!=null?acctAvail-tBal:null;
     const acctNote=acct?`<span style="font-size:.72rem;font-weight:400;color:var(--muted);margin-left:8px">↳ ${esc(acct.bank)} ${esc(acct.name)} avail: <span class="${acctAvail<0?'c-red':''}">${$s(acctAvail)}</span>${Math.abs(acctVariance)<1?` <span class="c-green">✓</span>`:`  <span class="${acctVariance>0?'c-green':'c-red'}">(${acctVariance>0?'+':''}${$s(acctVariance)})</span>`}</span>`:'';
-    html+=`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>${lbl}</h2></div>
-      <div class="tbl-wrap"><table class="dt">
+    const open=V.bkOpen[k]!==false;
+    html+=`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px;cursor:pointer" onclick="toggleBkGrp('${k}')">
+      <h2><span style="display:inline-block;width:14px;font-size:.7rem;color:var(--muted)">${open?'▼':'►'}</span>${lbl}</h2>
+      <span style="font-size:.78rem"><span class="c-muted">${bkts.length} bucket${bkts.length===1?'':'s'} · </span><strong class="${tBal<0?'c-red':'c-green'}">${$s(tBal)}</strong></span>
+    </div>
+      ${open?`<div class="tbl-wrap"><table class="dt">
         <thead><tr><th>Name</th><th style="text-align:right">Monthly</th><th style="text-align:right">YTD Accrued</th><th style="text-align:right">YTD Spent</th><th style="text-align:right">Balance</th><th>Progress</th></tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr>
@@ -830,7 +853,7 @@ function pgBuckets(){
           <td style="text-align:right"><strong class="${tBal<0?'c-red':'c-green'}">${$s(tBal)}</strong></td>
           <td></td>
         </tr></tfoot>
-      </table></div></div>`;
+      </table></div>`:''}</div>`;
   }
   return html;
 }
@@ -1198,7 +1221,7 @@ function pgBackup(){
     <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">Download a full JSON backup or export transactions as CSV for Excel/Sheets.</p>
     <div style="display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn btn-primary" onclick="exportJSON()">${ico('archive',13)} Export JSON Backup</button>
-      <button class="btn btn-ghost" onclick="exportCSV()">${ico('list',13)} Export Transactions CSV</button>
+      <button class="btn btn-ghost" onclick="exportCSV()" title="Transactions, paychecks, and allocations in one spreadsheet-ready file">${ico('list',13)} Export Full CSV</button>
     </div>
   </div>
   <div class="card"><div class="card-hdr"><h2>Import</h2></div>
@@ -1340,7 +1363,20 @@ function bktGroups(selId){
 
 function openAddTx(prefBkt,prefCard){
   _eTxId=null;
-  showTxModal({date:today(),who:'Both',amount:'',type:'expense',bucket:prefBkt||db.buckets[0]?.id||'',card:prefCard||'',desc:''},'Add Transaction');
+  showTxModal({date:today(),who:'Both',amount:'',type:'expense',bucket:prefBkt||db.cfg.lastBucket||db.buckets[0]?.id||'',card:prefCard||'',desc:''},'Add Transaction');
+}
+function descOptions(){
+  const seen=new Set(),opts=[];
+  for(const t of [...db.transactions].sort((a,b)=>b.date.localeCompare(a.date))){
+    const d=(t.desc||'').trim();
+    if(d&&!seen.has(d.toLowerCase())){seen.add(d.toLowerCase());opts.push(d);if(opts.length>=60)break;}
+  }
+  return opts.map(o=>`<option value="${esc(o)}">`).join('');
+}
+function dateSane(ds){
+  const y=+String(ds).slice(0,4);
+  if(y===cyr())return true;
+  return confirm(`That date is in ${y}, but the budget year is ${cyr()}.\nEntries outside the budget year are excluded from all totals.\n\nSave anyway?`);
 }
 function openEditTx(id){
   _eTxId=id;
@@ -1366,7 +1402,7 @@ function showTxModal(t,title){
       </div>
       <div class="fg"><label>Bucket</label><select id="tf-bkt">${bktGroups(t.bucket)}</select></div>
       <div class="fg"><label>Credit Card (optional)</label><select id="tf-card">${cOpts}</select></div>
-      <div class="fg"><label>Description</label><input type="text" id="tf-desc" placeholder="Notes..." value="${esc(t.desc||'')}"/></div>
+      <div class="fg"><label>Description</label><input type="text" id="tf-desc" placeholder="Notes..." value="${esc(t.desc||'')}" list="tf-desc-list"/><datalist id="tf-desc-list">${descOptions()}</datalist></div>
     </div>
     <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveTx()">Save</button></div>`);
 }
@@ -1379,13 +1415,27 @@ function saveTx(){
     amount:amt,type:document.getElementById('tf-type').value,
     bucket:bktv,card:document.getElementById('tf-card').value,
     desc:document.getElementById('tf-desc').value.trim()};
+  if(!dateSane(t.date))return;
   const dup=db.transactions.find(x=>x.id!==t.id&&x.date===t.date&&x.type===t.type&&x.bucket===t.bucket&&Math.abs(x.amount-t.amount)<0.005);
   if(dup&&!confirm(`Possible duplicate!\n\n${fdate(dup.date)} · ${dup.type==='expense'?'−':'+'}${$f(dup.amount)} · ${bname(dup.bucket)}${dup.desc?`\n"${dup.desc}"`:''}\n\nis already logged. Save this one anyway?`))return;
+  db.cfg.lastBucket=t.bucket;
   if(_eTxId){const i=db.transactions.findIndex(x=>x.id===_eTxId);if(i>=0)db.transactions[i]=t;}
   else db.transactions.push(t);
   dbSave();closeModal();pageR();
 }
 function delTx(id){if(!confirm('Delete this transaction?'))return;db.transactions=db.transactions.filter(t=>t.id!==id);dbSave();pageR();}
+function quickLog(){
+  const amt=parseFloat(document.getElementById('ql-amt').value);
+  const bktv=document.getElementById('ql-bkt').value;
+  if(isNaN(amt)||amt<=0||!bktv){alert('Enter an amount and pick a bucket.');return;}
+  const t={id:uid(),date:today(),who:'Both',amount:amt,type:'expense',bucket:bktv,card:'',
+    desc:document.getElementById('ql-desc').value.trim()};
+  const dup=db.transactions.find(x=>x.date===t.date&&x.type===t.type&&x.bucket===t.bucket&&Math.abs(x.amount-t.amount)<0.005);
+  if(dup&&!confirm(`Possible duplicate!\n\n${fdate(dup.date)} · −${$f(dup.amount)} · ${bname(dup.bucket)}${dup.desc?`\n"${dup.desc}"`:''}\n\nis already logged. Save this one anyway?`))return;
+  db.cfg.lastBucket=t.bucket;
+  db.transactions.push(t);
+  dbSave();pageR();
+}
 
 /* ── PAYCHECK FORM ──────────────────────────────────────────────── */
 function defAcct(who){return db.cfg[who==='Chris'?'chrisAcct':'sarahAcct']||'';}
@@ -1434,6 +1484,7 @@ function savePc(){
     acctId:document.getElementById('pf-acct').value||'',
     notes:document.getElementById('pf-notes').value.trim()};
   if(!p.date||p.amount<=0){alert('Please enter date and amount.');return;}
+  if(!dateSane(p.date))return;
   if(!db.paychecks)db.paychecks=[];
   const prev=_ePcId?db.paychecks.find(x=>x.id===_ePcId):null;
   if(prev)pcAcctAdjust(prev.acctId,-prev.amount);
@@ -1475,6 +1526,7 @@ function saveOther(){
     acctId:document.getElementById('of-acct').value||'',
     notes:document.getElementById('of-notes').value.trim()};
   if(!p.date||p.amount<=0){alert('Please enter date and amount.');return;}
+  if(!dateSane(p.date))return;
   if(!db.paychecks)db.paychecks=[];
   const prev=_ePcId?db.paychecks.find(x=>x.id===_ePcId):null;
   if(prev)pcAcctAdjust(prev.acctId,-prev.amount);
@@ -1529,6 +1581,7 @@ function saveAlloc(){
     pcId:document.getElementById('al-pc').value||null,
     notes:document.getElementById('al-notes').value.trim()};
   if(!a.date||!a.amount||!a.bucket){alert('Please enter date, a non-zero amount, and bucket.');return;}
+  if(!dateSane(a.date))return;
   const src=document.getElementById('al-src');
   if(src&&src.value==='new'){
     if(a.amount<=0){alert('New money arriving must be a positive amount.');return;}
@@ -1741,11 +1794,19 @@ function exportJSON(){
   dlFile('budget_backup_'+today()+'.json',out,'application/json');
 }
 function exportCSV(){
-  const hdr=['Date','Who','Type','Amount','Bucket','Card','Description'];
-  const rows=[...db.transactions].sort((a,b)=>b.date.localeCompare(a.date))
-    .map(t=>[t.date,t.who||'',t.type,t.amount,bname(t.bucket),t.card||'',t.desc||'']);
+  const hdr=['Date','Record','Who','Type','Amount','Bucket / Account','Card','Notes'];
+  const rows=[];
+  for(const t of db.transactions)
+    rows.push([t.date,'Transaction',t.who||'',t.type,t.amount,bname(t.bucket),t.card?cardLabel(t.card):'',t.desc||'']);
+  for(const p of db.paychecks||[]){
+    const acct=(db.accounts||[]).find(a=>a.id===p.acctId);
+    rows.push([p.date,p.kind==='other'?'Other Income':'Paycheck',p.who||'',p.kind==='other'?'other_income':'paycheck',p.amount,acct?`${acct.bank} ${acct.name}`:'','',p.notes||'']);
+  }
+  for(const a of db.allocations||[])
+    rows.push([a.date,'Allocation','','allocation',a.amount,bname(a.bucket),'',a.notes||'']);
+  rows.sort((a,b)=>String(b[0]).localeCompare(String(a[0])));
   const csv=[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
-  dlFile('budget_transactions_'+today()+'.csv',csv,'text/csv');
+  dlFile('budget_export_'+today()+'.csv',csv,'text/csv');
 }
 function dlFile(name,content,type){
   const a=document.createElement('a');
