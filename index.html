@@ -1117,7 +1117,37 @@ function pgAccounts(){
       <div class="sum-tile"><div class="sum-lbl">Unexplained</div><div class="sum-val ${Math.abs(aUnexpl)<1?'c-green':'c-red'}" title="Difference plus what's still owed on credit cards. This is the number to watch — near zero means every dollar is accounted for.">${Math.abs(aUnexpl)<1?'✓ Balanced':`${aUnexpl>0?'+':''}${$s(aUnexpl)}`}</div></div>
     </div>
     <p class="c-muted" style="font-size:.78rem;margin-top:2px">Expected = Opening Balance + YTD Income (paychecks + credits) − YTD Expenses. Charges you've logged but not yet paid off sit "on credit cards", so the Difference naturally runs negative by that amount — <strong>Unexplained</strong> (Difference + On Credit Cards) is the true health check.</p>
-  </div>`;
+  </div>
+  ${(()=>{
+    const bktTot=Math.round(db.buckets.reduce((s,b)=>s+bstats(b,null).bal,0)*100)/100;
+    const bufs=(db.accounts||[]).reduce((s,a)=>s+(+(a.buffer)||0),0);
+    const held=heldInAcct(null);
+    const unb=Math.round((tot-aOnCards-bufs-held-bktTot)*100)/100;
+    const rows=[
+      ['Bucket envelopes',bktTot,'What every bucket currently holds (accrued + extra funding − net spent)'],
+      ['Buffers',bufs,'Cash you deliberately keep outside the budget (per-account buffer settings)'],
+      ['📥 Held for next month',held,`This month's paycheck deposits, earmarked for ${MO[cmo()%12]} 1's bucket accrual`],
+      ['Spoken for by cards',aOnCards,'Cash still in the bank but owed to credit cards (charges already counted as spent)'],
+      ['Unbudgeted',unb,'The remainder — money in no envelope, buffer, hold, or card. Negative means envelopes and holds claim slightly more than cash on hand'],
+    ];
+    const pct=v=>tot>0?Math.round(Math.abs(v)/tot*100):0;
+    return`<div class="card" style="padding:0"><div class="card-hdr" style="padding:10px 16px"><h2>Every Dollar</h2><span class="c-muted" style="font-size:.72rem">All accounts (${$s(tot)}) split into where each dollar is committed</span></div>
+    <div class="tbl-wrap"><table class="dt">
+      <thead><tr><th>Where it is</th><th style="text-align:right">Amount</th><th style="width:120px">Share</th><th>What it means</th></tr></thead>
+      <tbody>${rows.map(([lbl,v,note])=>`<tr>
+        <td><strong>${lbl}</strong></td>
+        <td style="text-align:right" class="${v<-0.005?'c-red':''}">${$s(v)}</td>
+        <td><div class="hbar-w"><div class="hbar ${v<-0.005?'bad':'ok'}" style="width:${Math.min(100,pct(v))}%"></div></div></td>
+        <td class="c-muted" style="font-size:.76rem">${note}</td>
+      </tr>`).join('')}
+      </tbody>
+      <tfoot><tr>
+        <td><strong>= Total in accounts</strong></td>
+        <td style="text-align:right"><strong>${$s(bktTot+bufs+held+aOnCards+unb)}</strong></td>
+        <td colspan="2" class="${Math.abs(aUnexpl)<1?'c-green':'c-red'}" style="font-size:.78rem">${Math.abs(aUnexpl)<1?'✓ matches the banks exactly':`differs from banks by the Unexplained ${$s(aUnexpl)}`}</td>
+      </tr></tfoot>
+    </table></div></div>`;
+  })()}`;
 }
 
 /* ── PAGE: BACKUP ───────────────────────────────────────────────── */
