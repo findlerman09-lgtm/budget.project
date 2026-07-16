@@ -238,7 +238,9 @@ const SEED={"version": 5, "cfg": {"chrisPay": 0, "sarahPay": 0, "criticalBills":
 const LS='familyBudget5';
 let db={};
 let V={tab:'dashboard',drillId:null,dashMonth:null,dashPanel:'health',alertsHidden:false,
-  txF:{mo:'',bkt:'',who:'',typ:'',crd:'',q:''},ccCard:'amazon'};
+  txF:{mo:'',bkt:'',who:'',typ:'',crd:'',q:''},txOpen:{},ccCard:'amazon'};
+function toggleTxMo(m,open){V.txOpen[m]=open;pageR();}
+function setAllTxMo(open){V.txOpen={};V._txAll=open;pageR();}
 let _eTxId=null,_ePcId=null,_eBktId=null,_eAcctId=null;
 
 /* ── PERSIST ────────────────────────────────────────────────────── */
@@ -719,7 +721,7 @@ function pgTx(){
   const totE=txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   const totR=txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
   const totCCP=txs.filter(t=>t.type==='cc_payment').reduce((s,t)=>s+t.amount,0);
-  const rows=txs.map(t=>{
+  const txRow=t=>{
     const isE=t.type==='expense',isCCP=t.type==='cc_payment';
     const cLbl=t.card?`<span class="chip chip-card">${cardLabel(t.card)}</span>`:'';
     const acctName=isCCP&&t.fromAccount?((db.accounts||[]).find(a=>a.id===t.fromAccount)?.name||''):'';
@@ -731,7 +733,35 @@ function pgTx(){
       <td data-label="Card">${cLbl}</td>
       <td data-label="Notes" class="c-muted" style="max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.desc||'')}</td>
       <td><button class="btn btn-ghost btn-xs" onclick="openEditTx('${t.id}')">Edit</button> <button class="btn btn-danger btn-xs" onclick="delTx('${t.id}')">Del</button></td>
-    </tr>`;}).join('');
+    </tr>`;};
+  // group filtered transactions by month, newest first; newest month open by default
+  const groups=[];
+  for(const t of txs){
+    const k=t.date.slice(0,7);
+    if(!groups.length||groups[groups.length-1].k!==k)groups.push({k,txs:[]});
+    groups[groups.length-1].txs.push(t);
+  }
+  const isOpen=(k,i)=>{
+    if(k in V.txOpen)return V.txOpen[k];
+    if(V._txAll!==undefined)return V._txAll;
+    return i===0||!!f.mo;
+  };
+  const rows=groups.map((g,i)=>{
+    const open=isOpen(g.k,i);
+    const e=g.txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const r=g.txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const [gy,gm]=g.k.split('-');
+    const hdr=`<tr onclick="toggleTxMo('${g.k}',${open?'false':'true'})" style="cursor:pointer;background:#eef2f7">
+      <td colspan="7" style="padding:8px 12px">
+        <span style="display:inline-block;width:14px;font-size:.7rem;color:var(--muted)">${open?'▼':'►'}</span>
+        <strong>${MO[+gm-1]} ${gy}</strong>
+        <span class="c-muted" style="font-size:.76rem;margin-left:8px">${g.txs.length} transaction${g.txs.length===1?'':'s'}</span>
+        <span style="font-size:.76rem;margin-left:12px" class="c-red">−${$f(e)}</span>
+        ${r>0.005?`<span style="font-size:.76rem;margin-left:8px" class="c-green">+${$f(r)}</span>`:''}
+        <span style="font-size:.76rem;margin-left:8px" class="${e-r>0?'c-red':'c-green'}">net ${$s(e-r)}</span>
+      </td></tr>`;
+    return hdr+(open?g.txs.map(txRow).join(''):'');
+  }).join('');
   return`<div class="pg-hdr"><h1>Transactions</h1><button class="btn btn-primary" onclick="openAddTx()">+ Add Transaction</button></div>
   <div class="fbar">
     <select onchange="V.txF.mo=this.value;pageR()">${moOpts}</select>
@@ -756,6 +786,7 @@ function pgTx(){
     <span class="c-green">Refunds: <strong>${$f(totR)}</strong></span>
     ${totCCP>0?`<span style="color:#7c3aed">CC Payments: <strong>${$f(totCCP)}</strong></span>`:''}
     <span>Net: <strong class="${totE-totR>0?'c-red':'c-green'}">${$s(totE-totR)}</strong></span>
+    <span style="margin-left:auto"><button class="btn btn-ghost btn-xs" onclick="setAllTxMo(true)">Expand all</button> <button class="btn btn-ghost btn-xs" onclick="setAllTxMo(false)">Collapse all</button></span>
   </div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table class="dt tbl-mobile">
     <thead><tr><th>Date</th><th>Who</th><th style="text-align:right">Amount</th><th>Bucket</th><th>Card</th><th>Notes</th><th></th></tr></thead>
