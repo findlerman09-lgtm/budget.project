@@ -1215,7 +1215,7 @@ function pgAccounts(){
 function pgBackup(){
   const dataKB=(JSON.stringify(db).length/1024).toFixed(1);
   const lastExp=db.cfg.lastExport?`Last backup <strong>${fdate(db.cfg.lastExport)}</strong>`:'<span style="color:var(--warn);font-weight:600">Never backed up</span>';
-  return`<div class="pg-hdr"><h1>Backup & Import</h1></div>
+  return`<div class="pg-hdr"><h1>Backup, Reports & Import</h1></div>
   <div class="card"><div class="card-hdr"><h2>${ico('archive',14)} Export</h2></div>
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:13px;font-size:.84rem;flex-wrap:wrap">
       <span>${lastExp}</span>
@@ -1227,6 +1227,7 @@ function pgBackup(){
       <button class="btn btn-ghost" onclick="exportCSV()" title="Transactions, paychecks, and allocations in one spreadsheet-ready file">${ico('list',13)} Export Full CSV</button>
     </div>
   </div>
+  ${monthEndExportCard()}
   <div class="card"><div class="card-hdr"><h2>Import</h2></div>
     <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">Load a previously exported JSON backup. <strong>This replaces all current data.</strong></p>
     <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
@@ -2005,5 +2006,6 @@ function init(){
 }
 window.addEventListener('load',init);
 </script>
+<script src="month-end-report.js"></script>
 </body>
 </html>
