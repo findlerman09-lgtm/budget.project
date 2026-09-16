@@ -12,8 +12,20 @@ Open **Backup, Reports & Import → Build Month-End Report** to export a self-co
 
 The report treats credit-card payments as transfers and keeps bucket funding separate from cash flow, so already-funded envelopes are not counted as new income.
 
+### Optional planning layer
+
+The same page also contains **Planning & Month Close**. This additive layer can:
+
+- save dated future income and expense events for projections;
+- infer remaining paycheck dates or use explicit forecast dates and cadence;
+- create a month-end snapshot that preserves the report's account, card, bucket, and projection values;
+- optionally advance the active month after a snapshot is saved.
+
+Planning records do not create transactions, change balances, allocate buckets, or alter paycheck holding. Month closing does not lock the live ledger, and advancing the active month is always unchecked by default. Existing version 5 backups remain compatible because all new fields are optional.
+
 Run the calculation checks with:
 
 ```bash
 node tests/month-end-report.test.js
+node tests/planning-layer.test.js
 ```

@@ -1227,6 +1227,7 @@ function pgBackup(){
       <button class="btn btn-ghost" onclick="exportCSV()" title="Transactions, paychecks, and allocations in one spreadsheet-ready file">${ico('list',13)} Export Full CSV</button>
     </div>
   </div>
+  ${planningCard()}
   ${monthEndExportCard()}
   <div class="card"><div class="card-hdr"><h2>Import</h2></div>
     <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">Load a previously exported JSON backup. <strong>This replaces all current data.</strong></p>
@@ -2007,5 +2008,6 @@ function init(){
 window.addEventListener('load',init);
 </script>
 <script src="month-end-report.js"></script>
+<script src="planning.js"></script>
 </body>
 </html>
