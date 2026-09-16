@@ -117,6 +117,69 @@ function reportPaycheckUnreconciled(reportDb,year,month){
   return{over:reportRound(over),under:reportRound(under),total:reportRound(over+under)};
 }
 
+function reportUtcDate(value){
+  const parsed=reportDate(value);
+  return parsed?new Date(Date.UTC(parsed.year,parsed.month-1,parsed.day)):null;
+}
+
+function reportIsoDate(date){return date.toISOString().slice(0,10);}
+
+function reportAddDays(date,days){
+  const copy=new Date(date.getTime());
+  copy.setUTCDate(copy.getUTCDate()+days);
+  return copy;
+}
+
+function reportMedian(numbers){
+  if(!numbers.length)return null;
+  const values=[...numbers].sort((a,b)=>a-b),middle=Math.floor(values.length/2);
+  return values.length%2?values[middle]:(values[middle-1]+values[middle])/2;
+}
+
+function reportPaycheckForecast(reportDb,year,month){
+  const cutoff=new Date(Date.UTC(year,month,0));
+  const yearEnd=new Date(Date.UTC(year,11,31));
+  const schedules=[];
+  for(const who of['Chris','Sarah']){
+    const amount=reportNumber(who==='Chris'?reportDb.cfg?.chrisPay:reportDb.cfg?.sarahPay);
+    if(amount<=0)continue;
+    const configured=reportDb.cfg?.payForecast?.[who]||{};
+    const history=(reportDb.paychecks||[]).filter(item=>item.kind!=='other'&&item.who===who&&reportUtcDate(item.date)).map(item=>reportUtcDate(item.date)).sort((a,b)=>a-b);
+    const gaps=[];
+    for(let index=1;index<history.length;index++){
+      const gap=Math.round((history[index]-history[index-1])/864e5);
+      if(gap>=7&&gap<=35)gaps.push(gap);
+    }
+    const inferred=Math.round(reportMedian(gaps)||14);
+    const cadenceDays=Math.max(7,Math.min(35,Math.round(reportNumber(configured.cadenceDays)||inferred)));
+    let next=reportUtcDate(configured.nextDate);
+    let source='configured';
+    if(!next){
+      next=history.length?history[history.length-1]:null;
+      source=history.length?(gaps.length?'inferred':'last paycheck + 14 days'):'missing';
+      if(next)next=reportAddDays(next,cadenceDays);
+    }
+    if(!next){schedules.push({who,amount,cadenceDays,source,available:false,dates:[],count:0,total:0});continue;}
+    while(next<=cutoff)next=reportAddDays(next,cadenceDays);
+    const dates=[];
+    while(next<=yearEnd){dates.push(reportIsoDate(next));next=reportAddDays(next,cadenceDays);}
+    schedules.push({who,amount,cadenceDays,source,available:true,dates,count:dates.length,total:reportRound(dates.length*amount)});
+  }
+  const complete=schedules.length>0&&schedules.every(schedule=>schedule.available);
+  return{complete,schedules,count:schedules.reduce((sum,schedule)=>sum+schedule.count,0),total:reportRound(schedules.reduce((sum,schedule)=>sum+schedule.total,0))};
+}
+
+function reportPlannedEvents(reportDb,year,month){
+  const events=(reportDb.plannedEvents||[]).filter(event=>event.status!=='completed'&&event.affectsProjection!==false&&reportThroughMonth(event.date,year,12)&&!reportThroughMonth(event.date,year,month)).map(event=>({
+    id:event.id,date:event.date,name:event.name||'Planned item',type:event.type==='income'?'income':'expense',amount:reportNumber(event.amount),bucket:reportBucketName(reportDb,event.bucket),notes:event.notes||''
+  })).sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name));
+  return{
+    events,
+    income:reportRound(events.filter(event=>event.type==='income').reduce((sum,event)=>sum+event.amount,0)),
+    expenses:reportRound(events.filter(event=>event.type==='expense').reduce((sum,event)=>sum+event.amount,0))
+  };
+}
+
 function buildMonthEndAnalysis(reportDb,year,month,options={}){
   year=Number(year);
   month=Math.max(1,Math.min(12,Number(month)));
@@ -135,10 +198,17 @@ function buildMonthEndAnalysis(reportDb,year,month,options={}){
   const averageIncome=reportRound(ytdIncome/month);
   const averageExpenses=reportRound(ytdExpenses/month);
   const plannedMonthly=reportRound((reportDb.buckets||[]).reduce((sum,bucket)=>sum+reportNumber(bucket.monthly),0));
-  const projectedIncome=reportRound(ytdIncome+averageIncome*remainingMonths+futureIncomeAdjustment);
-  const budgetGuidedExpenses=reportRound(ytdExpenses+plannedMonthly*remainingMonths+futureExpenseAdjustment);
-  const runRateExpenses=reportRound(averageExpenses*12+futureExpenseAdjustment);
-  const projectedExpenses=reportRound(Math.max(budgetGuidedExpenses,runRateExpenses));
+  const paycheckForecast=reportPaycheckForecast(reportDb,year,month);
+  const plannedEvents=reportPlannedEvents(reportDb,year,month);
+  const futureRegularIncome=reportRound(paycheckForecast.complete?paycheckForecast.total:averageIncome*remainingMonths);
+  const incomeMethod=paycheckForecast.complete?'exact remaining paycheck schedule':'YTD monthly average';
+  const projectedIncome=reportRound(ytdIncome+futureRegularIncome+plannedEvents.income+futureIncomeAdjustment);
+  const budgetGuidedBase=reportRound(ytdExpenses+plannedMonthly*remainingMonths);
+  const runRateBase=reportRound(averageExpenses*12);
+  const budgetGuidedExpenses=reportRound(budgetGuidedBase+plannedEvents.expenses+futureExpenseAdjustment);
+  const runRateExpenses=reportRound(runRateBase+plannedEvents.expenses+futureExpenseAdjustment);
+  const baselineFutureExpenses=reportRound(Math.max(budgetGuidedBase,runRateBase)-ytdExpenses);
+  const projectedExpenses=reportRound(ytdExpenses+baselineFutureExpenses+plannedEvents.expenses+futureExpenseAdjustment);
   const projectedNet=reportRound(projectedIncome-projectedExpenses);
   const projectedSavingsRate=projectedIncome?reportRound(projectedNet/projectedIncome*100):0;
 
@@ -198,6 +268,9 @@ function buildMonthEndAnalysis(reportDb,year,month,options={}){
   if(overspent.length)findings.push(`${overspent.length} bucket${overspent.length===1?' was':'s were'} over the month's funded amount; the largest overage was ${overspent[0].name} at ${reportMoney(Math.abs(overspent[0].monthVariance))}.`);
   else if(buckets.length)findings.push('No bucket exceeded its funded amount for the selected month.');
   findings.push(`The conservative year-end forecast is ${reportMoney(projectedNet,true)}, using the higher of the budget-guided and run-rate expense forecasts.`);
+  if(paycheckForecast.complete)findings.push(`${paycheckForecast.count} regular paycheck${paycheckForecast.count===1?' is':'s are'} projected after this report period using the saved or inferred pay schedules.`);
+  else findings.push('At least one paycheck schedule could not be determined, so remaining regular income uses the YTD monthly average.');
+  if(plannedEvents.events.length)findings.push(`${plannedEvents.events.length} saved future event${plannedEvents.events.length===1?' is':'s are'} included: ${reportMoney(plannedEvents.income)} income and ${reportMoney(plannedEvents.expenses)} expenses.`);
   if(unreconciled.total>.01)findings.push(`${reportMoney(unreconciled.total)} of paycheck over/short amounts remains unreconciled with buckets through this report period.`);
   if(unassignedTransactions)findings.push(`${unassignedTransactions} transaction${unassignedTransactions===1?' has':'s have'} no matching bucket and should be reviewed.`);
 
@@ -205,8 +278,8 @@ function buildMonthEndAnalysis(reportDb,year,month,options={}){
     year,month,monthName:REPORT_MONTHS[month-1],generatedAt:new Date().toISOString(),isPartial,isCurrentLedger,notes,
     current,prior,monthly,ytd:{income:ytdIncome,expenses:ytdExpenses,net:ytdNet,savingsRate,budget:ytdBudget,netBucketSpend:ytdNetBucketSpend,bucketBalance:ytdBucketBalance},
     budget:{monthBudget,monthNetBucketSpend,monthBudgetVariance,plannedMonthly},
-    projection:{remainingMonths,averageIncome,averageExpenses,futureIncomeAdjustment,futureExpenseAdjustment,projectedIncome,budgetGuidedExpenses,runRateExpenses,projectedExpenses,projectedNet,projectedSavingsRate,projectedAdjustedCash},
-    buckets,categories,topExpenses,currentCards,cardsOwed,accounts,accountTotal,adjustedCash,unreconciled,unassignedTransactions,findings
+    projection:{remainingMonths,averageIncome,averageExpenses,incomeMethod,futureRegularIncome,futureIncomeAdjustment,futureExpenseAdjustment,plannedEventIncome:plannedEvents.income,plannedEventExpenses:plannedEvents.expenses,baselineFutureExpenses,projectedIncome,budgetGuidedExpenses,runRateExpenses,projectedExpenses,projectedNet,projectedSavingsRate,projectedAdjustedCash},
+    paycheckForecast,plannedEvents:plannedEvents.events,buckets,categories,topExpenses,currentCards,cardsOwed,accounts,accountTotal,adjustedCash,unreconciled,unassignedTransactions,findings
   };
 }
 
@@ -229,9 +302,13 @@ function renderMonthEndReport(analysis){
   const expenseRows=a.topExpenses.map(row=>`<tr><td>${reportEscape(row.date)}</td><td>${reportEscape(row.description)}</td><td>${reportEscape(row.bucket)}</td><td>${reportEscape(row.who||'—')}</td><td>${reportEscape(row.card||'—')}</td><td class="num">${reportMoney(row.amount)}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No expenses recorded for this month.</td></tr>';
   const accountRows=a.accounts.map(row=>`<tr><td>${reportEscape(row.name)}</td><td>${reportEscape(row.fund||'—')}</td><td class="num">${reportMoney(row.balance)}</td><td class="num">${reportMoney(row.buffer)}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">No accounts configured.</td></tr>';
   const cardRows=a.currentCards.map(row=>`<tr><td>${reportEscape(row.label)}</td><td class="num ${reportClass(-row.amount)}">${reportMoney(row.amount)}</td></tr>`).join('')||'<tr><td colspan="2" class="empty">No tracked card balance through this report period.</td></tr>';
-  const status=a.isPartial?'<span class="status warning">Partial month</span>':'<span class="status">Month-end</span>';
+  const eventRows=(a.plannedEvents||[]).map(event=>`<tr><td>${reportEscape(event.date)}</td><td>${reportEscape(event.name)}</td><td>${reportEscape(event.type==='income'?'Income':'Expense')}</td><td>${reportEscape(event.bucket||'—')}</td><td class="num ${reportClass(event.type==='income'?event.amount:-event.amount)}">${reportMoney(event.type==='income'?event.amount:-event.amount,true)}</td><td>${reportEscape(event.notes||'')}</td></tr>`).join('');
+  const paycheckRows=(a.paycheckForecast?.schedules||[]).map(schedule=>`<tr><td>${reportEscape(schedule.who)}</td><td class="num">${schedule.count}</td><td class="num">${reportMoney(schedule.amount)}</td><td class="num">${reportMoney(schedule.total)}</td><td>${reportEscape(schedule.dates.join(', ')||'Schedule unavailable')}</td></tr>`).join('');
+  const status=a.snapshotClosedAt?`<span class="status">Saved month-close snapshot</span>${a.isPartial?'<span class="status warning" style="margin-left:6px">Partial month</span>':''}`:a.isPartial?'<span class="status warning">Partial month</span>':'<span class="status">Month-end</span>';
   const notes=a.notes?`<section><h2>Projection notes</h2><div class="notes">${reportEscape(a.notes)}</div></section>`:'';
   const projectedCash=a.projection.projectedAdjustedCash==null?'':reportMetric('Projected adjusted cash',reportMoney(a.projection.projectedAdjustedCash,true),'Current accounts less cards, plus forecast remaining cash flow',reportClass(a.projection.projectedAdjustedCash));
+  const accountHeading=a.snapshotClosedAt?'Month-close account snapshot':'Current account snapshot';
+  const accountNote=a.snapshotClosedAt?`Balances were preserved when this snapshot was saved ${new Date(a.snapshotClosedAt).toLocaleString('en-US')}.`:`Account balances are today's manually synced balances, not reconstructed historical month-end balances.`;
   return`<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BudgetLock Analysis — ${reportEscape(a.monthName)} ${a.year}</title>
 <style>
@@ -239,14 +316,17 @@ function renderMonthEndReport(analysis){
 </style></head><body><div class="toolbar"><button onclick="window.print()">Print / Save PDF</button></div><article class="report"><header><div class="eyebrow">BudgetLock month-end analysis</div><h1>${reportEscape(a.monthName)} ${a.year}</h1><p>Generated ${new Date(a.generatedAt).toLocaleString('en-US')}</p>${status}</header><main>
 <section><h2>Executive summary</h2><div class="metrics">${reportMetric('Month income',reportMoney(a.current.income),'Paychecks and recorded credits')}${reportMetric('Month expenses',reportMoney(a.current.expenses),'Cash spending; card payments excluded')}${reportMetric('Month cash flow',reportMoney(a.current.net,true),'Income less expenses',reportClass(a.current.net))}${reportMetric('Month budget variance',reportMoney(a.budget.monthBudgetVariance,true),'Funded buckets less net bucket spending',reportClass(a.budget.monthBudgetVariance))}${reportMetric('YTD income',reportMoney(a.ytd.income))}${reportMetric('YTD expenses',reportMoney(a.ytd.expenses))}${reportMetric('YTD cash flow',reportMoney(a.ytd.net,true),`Savings rate ${reportPercent(a.ytd.savingsRate)}`,reportClass(a.ytd.net))}${reportMetric('YTD bucket balance',reportMoney(a.ytd.bucketBalance,true),'Accrued funding plus allocations less net spending',reportClass(a.ytd.bucketBalance))}</div></section>
 <section><h2>What stands out</h2><ul class="findings">${a.findings.map(finding=>`<li>${reportEscape(finding)}</li>`).join('')}</ul></section>
-<section><h2>Year-end projection</h2><div class="metrics">${reportMetric('Projected income',reportMoney(a.projection.projectedIncome),`${a.projection.remainingMonths} month(s) remaining`)}${reportMetric('Budget-guided expenses',reportMoney(a.projection.budgetGuidedExpenses),'Actual YTD + remaining monthly budget')}${reportMetric('Run-rate expenses',reportMoney(a.projection.runRateExpenses),'YTD average annualized')}${reportMetric('Conservative expenses',reportMoney(a.projection.projectedExpenses),'Higher of the two expense forecasts')}${reportMetric('Projected cash flow',reportMoney(a.projection.projectedNet,true),`Projected savings rate ${reportPercent(a.projection.projectedSavingsRate)}`,reportClass(a.projection.projectedNet))}${reportMetric('Future income adjustment',reportMoney(a.projection.futureIncomeAdjustment,true),'One-time amount supplied for this report',reportClass(a.projection.futureIncomeAdjustment))}${reportMetric('Future expense adjustment',reportMoney(-a.projection.futureExpenseAdjustment,true),'One-time amount supplied for this report',reportClass(-a.projection.futureExpenseAdjustment))}${projectedCash}</div><div class="callout" style="margin-top:12px"><strong>Forecast approach</strong>Income continues at the YTD monthly average. Expenses use the more cautious of remaining funded budget and the annualized spending pace, then apply the one-time adjustments supplied at export.</div></section>
+<section><h2>Year-end projection</h2><div class="metrics">${reportMetric('Projected income',reportMoney(a.projection.projectedIncome),a.projection.incomeMethod)}${reportMetric('Budget-guided expenses',reportMoney(a.projection.budgetGuidedExpenses),'Actual YTD + remaining monthly budget + saved events')}${reportMetric('Run-rate expenses',reportMoney(a.projection.runRateExpenses),'YTD pace + saved events')}${reportMetric('Conservative expenses',reportMoney(a.projection.projectedExpenses),'Higher baseline plus saved and manual items')}${reportMetric('Projected cash flow',reportMoney(a.projection.projectedNet,true),`Projected savings rate ${reportPercent(a.projection.projectedSavingsRate)}`,reportClass(a.projection.projectedNet))}${reportMetric('Saved future events',reportMoney(a.projection.plannedEventIncome-a.projection.plannedEventExpenses,true),`${(a.plannedEvents||[]).length} item(s) included`,reportClass(a.projection.plannedEventIncome-a.projection.plannedEventExpenses))}${reportMetric('Manual adjustment',reportMoney(a.projection.futureIncomeAdjustment-a.projection.futureExpenseAdjustment,true),'One-time amounts supplied during export',reportClass(a.projection.futureIncomeAdjustment-a.projection.futureExpenseAdjustment))}${projectedCash}</div><div class="callout" style="margin-top:12px"><strong>Forecast approach</strong>Income uses the ${reportEscape(a.projection.incomeMethod)}. Expenses use the more cautious of remaining funded budget and annualized spending pace, then add saved future events and any one-time export adjustments.</div></section>
+<section><h2>Projection bridge</h2><table><tbody><tr><td>YTD income</td><td class="num positive">${reportMoney(a.ytd.income,true)}</td></tr><tr><td>Remaining regular income (${reportEscape(a.projection.incomeMethod)})</td><td class="num positive">${reportMoney(a.projection.futureRegularIncome,true)}</td></tr><tr><td>Saved future income events</td><td class="num positive">${reportMoney(a.projection.plannedEventIncome,true)}</td></tr><tr><td>Manual future income adjustment</td><td class="num positive">${reportMoney(a.projection.futureIncomeAdjustment,true)}</td></tr><tr><td>YTD expenses</td><td class="num negative">${reportMoney(-a.ytd.expenses,true)}</td></tr><tr><td>Conservative remaining baseline expenses</td><td class="num negative">${reportMoney(-a.projection.baselineFutureExpenses,true)}</td></tr><tr><td>Saved future expense events</td><td class="num negative">${reportMoney(-a.projection.plannedEventExpenses,true)}</td></tr><tr><td>Manual future expense adjustment</td><td class="num negative">${reportMoney(-a.projection.futureExpenseAdjustment,true)}</td></tr></tbody><tfoot><tr><th>Projected year-end cash flow</th><th class="num ${reportClass(a.projection.projectedNet)}">${reportMoney(a.projection.projectedNet,true)}</th></tr></tfoot></table></section>
+${paycheckRows?`<section><h2>Remaining paycheck schedule</h2><table><thead><tr><th>Person</th><th class="num">Checks</th><th class="num">Per check</th><th class="num">Projected total</th><th>Expected dates</th></tr></thead><tbody>${paycheckRows}</tbody></table></section>`:''}
+${eventRows?`<section><h2>Saved future events</h2><table><thead><tr><th>Date</th><th>Item</th><th>Type</th><th>Bucket</th><th class="num">Forecast effect</th><th>Notes</th></tr></thead><tbody>${eventRows}</tbody></table></section>`:''}
 ${notes}
 <section><h2>Monthly cash flow</h2><table><thead><tr><th>Month</th><th class="num">Paychecks / other deposits</th><th class="num">Transaction credits</th><th class="num">Total income</th><th class="num">Expenses</th><th class="num">Net</th></tr></thead><tbody>${monthlyRows}</tbody><tfoot><tr><th>YTD</th><th></th><th></th><th class="num">${reportMoney(a.ytd.income)}</th><th class="num">${reportMoney(a.ytd.expenses)}</th><th class="num ${reportClass(a.ytd.net)}">${reportMoney(a.ytd.net,true)}</th></tr></tfoot></table></section>
 <section><h2>Budget performance by category</h2><table><thead><tr><th>Category</th><th class="num">Month funded</th><th class="num">Month spent</th><th class="num">Month variance</th><th class="num">YTD funded</th><th class="num">YTD spent</th><th class="num">Envelope balance</th></tr></thead><tbody>${categoryRows}</tbody></table></section>
 <section><h2>Bucket detail and projected year-end balance</h2><table><thead><tr><th>Bucket</th><th class="num">Month funded</th><th class="num">Month spent</th><th class="num">Month variance</th><th class="num">YTD balance</th><th class="num">Projected Dec. 31 balance</th></tr></thead><tbody>${bucketRows||'<tr><td colspan="6" class="empty">No buckets configured.</td></tr>'}</tbody></table><p class="method">Projected bucket balances annualize each bucket's YTD net spending and compare it with twelve months of base funding plus extra allocations already recorded. Future unrecorded allocations are not assumed.</p></section>
 <section><h2>Largest expenses this month</h2><table><thead><tr><th>Date</th><th>Description</th><th>Bucket</th><th>Who</th><th>Card</th><th class="num">Amount</th></tr></thead><tbody>${expenseRows}</tbody></table></section>
-<section class="grid2"><div><h2>Current account snapshot</h2><table><thead><tr><th>Account</th><th>Fund</th><th class="num">Balance</th><th class="num">Buffer</th></tr></thead><tbody>${accountRows}</tbody><tfoot><tr><th colspan="2">Current total</th><th class="num">${reportMoney(a.accountTotal)}</th><th></th></tr></tfoot></table><p class="method">Account balances are today's manually synced balances, not reconstructed historical month-end balances. Adjusted cash after tracked card obligations: <strong>${reportMoney(a.adjustedCash,true)}</strong>.</p></div><div><h2>Tracked cards through report period</h2><table><thead><tr><th>Card</th><th class="num">Outstanding</th></tr></thead><tbody>${cardRows}</tbody><tfoot><tr><th>Total${a.cardsOwed!==a.currentCards.reduce((sum,card)=>sum+card.amount,0)?' incl. pending Amex':''}</th><th class="num">${reportMoney(a.cardsOwed)}</th></tr></tfoot></table></div></section>
-<section><h2>Data checks</h2><div class="metrics">${reportMetric('Unreconciled pay',reportMoney(a.unreconciled.total),`${reportMoney(a.unreconciled.over)} over · ${reportMoney(a.unreconciled.under)} short`,a.unreconciled.total>.01?'negative':'positive')}${reportMetric('Unassigned transactions',String(a.unassignedTransactions),'Transactions without a matching bucket',a.unassignedTransactions?'negative':'positive')}${reportMetric('Accounts less cards',reportMoney(a.adjustedCash,true),'Current bank balances less tracked card obligations',reportClass(a.adjustedCash))}${reportMetric('Report status',a.isPartial?'Partial month':'Completed period',a.isCurrentLedger?'Matches the app active period':'Historical report period',a.isPartial?'negative':'positive')}</div></section>
+<section class="grid2"><div><h2>${reportEscape(accountHeading)}</h2><table><thead><tr><th>Account</th><th>Fund</th><th class="num">Balance</th><th class="num">Buffer</th></tr></thead><tbody>${accountRows}</tbody><tfoot><tr><th colspan="2">Snapshot total</th><th class="num">${reportMoney(a.accountTotal)}</th><th></th></tr></tfoot></table><p class="method">${reportEscape(accountNote)} Adjusted cash after tracked card obligations: <strong>${reportMoney(a.adjustedCash,true)}</strong>.</p></div><div><h2>Tracked cards through report period</h2><table><thead><tr><th>Card</th><th class="num">Outstanding</th></tr></thead><tbody>${cardRows}</tbody><tfoot><tr><th>Total${a.cardsOwed!==a.currentCards.reduce((sum,card)=>sum+card.amount,0)?' incl. pending Amex':''}</th><th class="num">${reportMoney(a.cardsOwed)}</th></tr></tfoot></table></div></section>
+<section><h2>Data checks</h2><div class="metrics">${reportMetric('Unreconciled pay',reportMoney(a.unreconciled.total),`${reportMoney(a.unreconciled.over)} over · ${reportMoney(a.unreconciled.under)} short`,a.unreconciled.total>.01?'negative':'positive')}${reportMetric('Unassigned transactions',String(a.unassignedTransactions),'Transactions without a matching bucket',a.unassignedTransactions?'negative':'positive')}${reportMetric('Accounts less cards',reportMoney(a.adjustedCash,true),'Snapshot balances less tracked card obligations',reportClass(a.adjustedCash))}${reportMetric('Report status',a.snapshotClosedAt?'Saved snapshot':a.isPartial?'Partial month':'Completed period',a.snapshotClosedAt?'Historical values preserved':a.isCurrentLedger?'Matches the app active period':'Historical report period',a.isPartial&&!a.snapshotClosedAt?'negative':'positive')}</div></section>
 <section><h2>Definitions and cautions</h2><p class="method"><strong>Income</strong> includes logged paychecks, other deposits, and transactions recorded as income/refunds. <strong>Expenses</strong> include expense transactions; credit-card payments are transfers and are excluded to avoid double counting. <strong>Funded</strong> means the month's base bucket amount plus extra allocations, while <strong>envelope balance</strong> carries all funding and net spending through the selected month. Projections are planning estimates, not guarantees, and become more reliable as more complete months are recorded.</p></section>
 <div class="footer">BudgetLock · ${reportEscape(a.monthName)} ${a.year} month-end analysis · Generated from locally stored app data.</div>
 </main></article></body></html>`;
@@ -254,7 +334,7 @@ ${notes}
 
 function monthEndExportCard(){
   return`<div class="card"><div class="card-hdr"><h2>${ico('trendingUp',14)} Month-End Analysis</h2></div>
-    <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">Export a detailed, printable HTML report with monthly and YTD cash flow, bucket performance, major expenses, data checks, and conservative year-end projections. Known future one-time items can be added before export.</p>
+    <p style="margin-bottom:13px;font-size:.86rem;color:var(--muted)">Export a detailed, printable HTML report with monthly and YTD cash flow, bucket performance, major expenses, data checks, exact remaining-paycheck forecasting, saved future events, and conservative year-end projections.</p>
     <button class="btn btn-primary" onclick="openMonthEndReport()">${ico('trendingUp',13)} Build Month-End Report</button>
   </div>`;
 }
@@ -294,4 +374,4 @@ function exportMonthEndAnalysis(){
   closeModal();
 }
 
-if(typeof module!=='undefined'&&module.exports){module.exports={buildMonthEndAnalysis,renderMonthEndReport,reportCashForMonth,reportBucketSpend};}
+if(typeof module!=='undefined'&&module.exports){module.exports={buildMonthEndAnalysis,renderMonthEndReport,reportCashForMonth,reportBucketSpend,reportPaycheckForecast,reportPlannedEvents};}
